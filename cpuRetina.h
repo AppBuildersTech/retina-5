@@ -1,21 +1,16 @@
+#pragma once
 
-#ifndef GPUPIXELSEARCHBYTRIPLET
-#define GPUPIXELSEARCHBYTRIPLET 1
-
-#include "FileStdLogger.h"
-#include "Tools.cuh"
-#include "KernelInvoker.cuh"
 #include "Logger.h"
 
 #include <stdint.h>
-
+#include <vector>
 int independent_execute(
     const std::vector<std::vector<uint8_t> > & input,
     std::vector<std::vector<uint8_t> > & output);
 
 void independent_post_execute(const std::vector<std::vector<uint8_t> > & output);
 
-int gpuPixelSearchByTriplet(
+int cpuRetina(
     const std::vector<const std::vector<uint8_t>* > & input,
     std::vector<std::vector<uint8_t> > & output);
 
@@ -24,8 +19,6 @@ int gpuPixelSearchByTriplet(
  * @param input  
  * @param output 
  */
-int gpuPixelSearchByTripletInvocation(
+int cpuRetinaInvocation(
     const std::vector<const std::vector<uint8_t>* > & input,
     std::vector<std::vector<uint8_t> > & output);
-
-#endif
