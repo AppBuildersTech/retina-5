@@ -1,5 +1,8 @@
 #include "cpuRetina.h"
+#include "grid.h"
+#include "physics.h"
 #include <cmath>
+
 int independent_execute(
     const std::vector<std::vector<uint8_t> > & input,
     std::vector<std::vector<uint8_t> > & output) {
@@ -32,90 +35,50 @@ int cpuRetina(
   return cpuRetinaInvocation(input, output);
 }
 
-struct Hit {
-  double u,v;
-};
-struct Receptor
+
+
+TrackPure generateTrackFromIndex(const std::vector<int>& indexes, const std::vector<Dimension>& dim)
 {
-  double u, v;
-  Receptor() {}
-  Receptor(double _u, double _v) : u(_u), v(_v) {}
-};
-
-namespace {
-  const int U_GRID_SIZE = 100;
-  const double U_MIN = 0, U_MAX = 1;
-  const int V_GRID_SIZE = 100;
-  const double V_MIN = 0, V_MAX = 1;
-  
-  int getGridSize() 
-  {
-    return U_GRID_SIZE * V_GRID_SIZE;
-  }
-  
-  int getIdFromIndexes(int u, int v)
-  {
-    return u + v * U_GRID_SIZE;
-  }
-  
-  double getUFromId(int id)
-  {
-    int uId = id % U_GRID_SIZE;
-    return uId * (U_MAX - U_MIN) / (U_GRID_SIZE - 1) + U_MIN;
-  }
-  
-  double getVFromId(int id)
-  {
-    int vId = id / U_GRID_SIZE;
-    return vId * (V_MAX - V_MIN) / (V_GRID_SIZE - 1) + V_MIN;
-  }
-   
-  Receptor generateReceptorByNumber(int id)
-  {
-    return Receptor(getUFromId(id), getVFromId(id));
-  }
-  
+  TrackPure ans;
+  ans.x0 = dim[0].get(indexes[0]);
+  ans.y0 = dim[1].get(indexes[1]);
+  ans.tx = dim[2].get(indexes[2]);
+  ans.ty = dim[3].get(indexes[3]);
+  return ans;
 }
 
-std::vector<Receptor> generateGrid() {
-  std::vector<Receptor> grid(getGridSize());
-  for (int i = 0; i < (int)grid.size(); ++i) 
-  {
-    grid[i] = generateReceptorByNumber(i);
-  }
-  return grid;
-}
-
-double getDistanceFromReceptorToHit(Receptor receptor, Hit hit)
+/*
+vector<Track> retinaRestores(const vector<Dimension>& dimensions, const vector<double> responce)
 {
-  return pow(receptor.u - receptor.u, 2) + pow(receptor.v - receptor.v, 2);
+  int gridSizeNoBoarders = calculateGridSize(dimensions, 1);
+  vector<int> indexes(dimensions.size(), 1);
+  for (int i = 0; i < gridSizeNoBoarders; ++i)
+  {
+    vector<int> neighbours = generateNeighboursIndexes(index, dimensions);
+    int currentIndex = multiIndexToIndex(index, dimensions);
+    //checkLocalMaximum
+      //Restore
+  }
+
 }
+vector<TrackN> main(const vector<Hit>& hits)
+{
+}
+
 std::vector<double> cpuCalculateRetinaResponce(const std::vector<Receptor>& receptors, const std::vector<Hit>& hits, double sharpness)
 {
   std::vector<double> responces;
   for (Receptor receptor : receptors) 
   {
     double sum = 0;
-    for (Hit hit : hits)
+    for (const Hit& hit : hits)
     {
       sum += exp(-getDistanceFromReceptorToHit(receptor, hit) / sharpness);
     }
     responces.push_back(sum);
   }
   return responces;
-}
-
-std::vector<int> getNeighboursId(int uId, int vId)
-{
-  return std::vector<int> (
-    {
-     getIdFromIndexes(uId + 1, vId),
-     getIdFromIndexes(uId - 1, vId), 
-     getIdFromIndexes(uId, vId + 1), 
-     getIdFromIndexes(uId, vId - 1)      
-    }   
-  );
-}
+}*/
 /**
  * Common entrypoint for Gaudi and non-Gaudi
  * @param input  
@@ -125,38 +88,21 @@ int cpuRetinaInvocation(
     const std::vector<const std::vector<uint8_t>* > & input,
     std::vector<std::vector<uint8_t> > & output) 
 {
-  const std::vector<Hit> hits; //Get it some way from input
-  const std::vector<Receptor> receptors = generateGrid();
-  const std::vector<double> responce = cpuCalculateRetinaResponce(receptors, hits, 1.0);
-  
-  std::vector<Receptor> maximums;
-  for (int uId = 1; uId < U_GRID_SIZE - 1; ++uId)
+  std::vector<Dimension> dimensions = 
+    { 
+      Dimension(MIN_X0, MAX_X0, GRID_SIZE_X0),
+      Dimension(MIN_Y0, MAX_Y0, GRID_SIZE_Y0),
+      Dimension(MIN_XT, MAX_XT, GRID_SIZE_XT),
+      Dimension(MIN_YT, MAX_YT, GRID_SIZE_YT)
+    };
+  auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
+  std::cerr << grid.size() << std::endl;
+  for (auto x : grid)
   {
-    for (int vId = 1; vId < V_GRID_SIZE - 1; ++vId)
-    {
-      const std::vector<int> neighbourIds = getNeighboursId(uId, vId);
-      const int currentId = getIdFromIndexes(uId, vId);
-      double sumResponce = responce[currentId];
-      bool isLocalMaximum = true;
-      for (int neighbourId : neighbourIds) 
-      {
-        if (responce[currentId] < responce[neighbourId])
-          isLocalMaximum = false;
-        sumResponce += responce[neighbourId];
-      }
-
-      double uRestored = 0; 
-      double vRestored = 0; 
-      {
-        double currentWeight = responce[currentId] / sumResponce;
-        uRestored += getUFromId(currentId) * currentWeight;
-        vRestored += getVFromId(currentId) * currentWeight;   	
-      }
-      if (isLocalMaximum)
-	maximums.push_back(Receptor(uRestored, vRestored));
-    }
+    std::cerr << x.x0 << " " << x.y0 << " " << x.tx << " " << x.ty << std::endl;
   }
-  
-  //output maximus to some format;
+  //auto responce = calculateRetinaResponse(grid, hits);
+  //auto restored = retinaRestores(demenison, responce);
+  //output = putGoodHits(restored, hits, minimalResponce);
   return 0;
 }
