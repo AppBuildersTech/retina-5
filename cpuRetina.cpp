@@ -47,21 +47,41 @@ TrackPure generateTrackFromIndex(const std::vector<int>& indexes, const std::vec
   return ans;
 }
 
-/*
-vector<Track> retinaRestores(const vector<Dimension>& dimensions, const vector<double> responce)
+
+std::vector<TrackPure> retinaRestores(const std::vector<Dimension>& dimensions, const std::vector<TrackPure>& grid, const std::vector<double>& responce)
 {
   int gridSizeNoBoarders = calculateGridSize(dimensions, 1);
-  vector<int> indexes(dimensions.size(), 1);
+  std::vector<int> indexes(dimensions.size(), 1);
+  std::vector<TrackPure> restored;
   for (int i = 0; i < gridSizeNoBoarders; ++i)
   {
-    vector<int> neighbours = generateNeighboursIndexes(index, dimensions);
-    int currentIndex = multiIndexToIndex(index, dimensions);
-    //checkLocalMaximum
-      //Restore
+    std::vector<int> neighbours = generateNeighboursIndexes(indexes, dimensions);
+    int currentIndex = multiIndexToIndex(indexes, dimensions);
+    bool isLocalMaximum = true;
+    for (int neighbour : neighbours)
+    {
+      if (responce[neighbour] > responce[currentIndex])
+      {
+	isLocalMaximum = false;
+      }
+    }
+    std::cerr << isLocalMaximum << std::endl;
+    if (isLocalMaximum)
+    {
+      TrackPure answer = grid[currentIndex] * responce[currentIndex];
+      double sum_responce = 0;
+      for (int neighbour : neighbours)
+      {
+	answer = answer + grid[neighbour] * responce[neighbour];
+	sum_responce += responce[neighbour];
+      }
+      restored.push_back(answer * (1.0 / sum_responce));      
+    }
   }
+  return restored;
 
 }
-*/
+
 std::vector<double> cpuCalculateRetinaResponces(const std::vector<TrackPure>& grid, const std::vector<Hit>& hits, double sharpness)
 {
   std::vector<double> responces(grid.size());
@@ -69,7 +89,9 @@ std::vector<double> cpuCalculateRetinaResponces(const std::vector<TrackPure>& gr
   {
     auto& track = grid[i];
     for (const Hit& hit : hits)
+    {
       responces[i] += exp(-getDistanceFromTrackToHit(track, hit) / sharpness);
+    }
   }
   return responces;
 }
@@ -95,9 +117,8 @@ int cpuRetinaInvocation(
     auto in = *input[i];
     auto hits = parseHitsFromInput(const_cast<uint8_t*>(&in[0]), in.size());
     auto responces = cpuCalculateRetinaResponces(grid, hits, 1);
-    for (double responce : responces)
-      std::cerr << responce << std::endl;
-    //auto restored = retinaRestores(demenison, responce);
+    auto restored = retinaRestores(dimensions, grid, responces);
+    std::cerr << restored.size() << std::endl;
     //output[i] = putGoodHits(restored, hits, minimalResponce);
   }
   return 0;

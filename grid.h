@@ -37,6 +37,7 @@ void generateNextIndex(std::vector<int>& indexes, const std::vector<Dimension>& 
   }
 }
 
+
 int multiIndexToIndex(const std::vector<int>& indexes, const std::vector<Dimension>& dim)
 {
   int answer = indexes[indexes.size() - 1];
@@ -45,6 +46,23 @@ int multiIndexToIndex(const std::vector<int>& indexes, const std::vector<Dimensi
     answer = answer * dim[i + 1].gridSize + indexes[i];
   }
   return answer;
+}
+
+std::vector<int> generateNeighboursIndexes(const std::vector<int>& indexes, const std::vector<Dimension>& dim)
+{
+  auto index_copy = indexes;
+  std::vector<int> neighbours;
+  neighbours.reserve(indexes.size() * 2);
+  for (int i = 0; i < indexes.size(); ++i)
+  {
+    for (int dx : {-1, 1})
+    {
+      index_copy[i] = indexes[i] + dx;
+      neighbours.push_back(multiIndexToIndex(index_copy, dim));            
+    }
+    index_copy[i] = indexes[i];
+  }
+  return neighbours;
 }
 
 template<class T>

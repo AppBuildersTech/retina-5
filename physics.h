@@ -1,15 +1,15 @@
 #pragma once
-const double MIN_X0 = 0, MAX_X0 = 1;
-const int GRID_SIZE_X0 = 3;
+const double MIN_X0 = -100, MAX_X0 = 100;
+const int GRID_SIZE_X0 = 5;
 
-const double MIN_Y0 = 0, MAX_Y0 = 1;
-const int GRID_SIZE_Y0 = 3;
+const double MIN_Y0 = -100, MAX_Y0 = 100;
+const int GRID_SIZE_Y0 = 5;
 
-const double MIN_XT = 0, MAX_XT = 1;
-const int GRID_SIZE_XT = 3;
+const double MIN_XT = -100, MAX_XT = 100;
+const int GRID_SIZE_XT = 5;
 
-const double MIN_YT = 0, MAX_YT = 1;
-const int GRID_SIZE_YT = 3;
+const double MIN_YT = -100, MAX_YT = 100;
+const int GRID_SIZE_YT = 5;
 
 const int MAX_TRACK_SIZE = 24;
 
@@ -36,6 +36,26 @@ struct TrackPure {
   float y0;
   float ty;
 };
+
+TrackPure operator*(const TrackPure& one, double alpha)
+{
+  TrackPure answer(one);
+  answer.x0 *= alpha;
+  answer.y0 *= alpha;
+  answer.tx *= alpha;
+  answer.ty *= alpha;
+  return answer;
+}
+
+TrackPure operator+(const TrackPure& one, const TrackPure& other)
+{
+  TrackPure answer(one);
+  answer.x0 += other.x0;
+  answer.y0 += other.y0;
+  answer.tx += other.tx;
+  answer.ty += other.ty;
+  return answer;
+}
 
 inline double square(double x)
 {
