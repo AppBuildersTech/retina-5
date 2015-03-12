@@ -62,7 +62,7 @@ vector<Track> retinaRestores(const vector<Dimension>& dimensions, const vector<d
 
 }
 */
-std::vector<double> cpuCalculateRetinaResponce(const std::vector<TrackPure>& grid, const std::vector<Hit>& hits, double sharpness)
+std::vector<double> cpuCalculateRetinaResponces(const std::vector<TrackPure>& grid, const std::vector<Hit>& hits, double sharpness)
 {
   std::vector<double> responces(grid.size());
   for (unsigned int i = 0; i < grid.size(); ++i) 
@@ -94,11 +94,9 @@ int cpuRetinaInvocation(
   {
     auto in = *input[i];
     auto hits = parseHitsFromInput(const_cast<uint8_t*>(&in[0]), in.size());
-    for (Hit& hit : hits)
-    {
-      std::cerr << hit.x << " " << hit.y << " " << hit.z << " " << hit.id << std::endl;
-    }
-    //auto responce = cpuCalculateRetinaResponce(grid, hits, 1);
+    auto responces = cpuCalculateRetinaResponces(grid, hits, 1);
+    for (double responce : responces)
+      std::cerr << responce << std::endl;
     //auto restored = retinaRestores(demenison, responce);
     //output[i] = putGoodHits(restored, hits, minimalResponce);
   }
