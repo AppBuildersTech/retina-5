@@ -61,24 +61,18 @@ vector<Track> retinaRestores(const vector<Dimension>& dimensions, const vector<d
   }
 
 }
-vector<TrackN> main(const vector<Hit>& hits)
+*/
+std::vector<double> cpuCalculateRetinaResponce(const std::vector<TrackPure>& grid, const std::vector<Hit>& hits, double sharpness)
 {
-}
-
-std::vector<double> cpuCalculateRetinaResponce(const std::vector<Receptor>& receptors, const std::vector<Hit>& hits, double sharpness)
-{
-  std::vector<double> responces;
-  for (Receptor receptor : receptors) 
+  std::vector<double> responces(grid.size());
+  for (unsigned int i = 0; i < grid.size(); ++i) 
   {
-    double sum = 0;
+    auto& track = grid[i];
     for (const Hit& hit : hits)
-    {
-      sum += exp(-getDistanceFromReceptorToHit(receptor, hit) / sharpness);
-    }
-    responces.push_back(sum);
+      responces[i] += exp(-getDistanceFromTrackToHit(track, hit) / sharpness);
   }
   return responces;
-}*/
+}
 /**
  * Common entrypoint for Gaudi and non-Gaudi
  * @param input  
@@ -96,13 +90,17 @@ int cpuRetinaInvocation(
       Dimension(MIN_YT, MAX_YT, GRID_SIZE_YT)
     };
   auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
-  std::cerr << grid.size() << std::endl;
-  for (auto x : grid)
+  for (unsigned int i = 0; i < input.size(); ++i)
   {
-    std::cerr << x.x0 << " " << x.y0 << " " << x.tx << " " << x.ty << std::endl;
+    auto in = *input[i];
+    auto hits = parseHitsFromInput(const_cast<uint8_t*>(&in[0]), in.size());
+    for (Hit& hit : hits)
+    {
+      std::cerr << hit.x << " " << hit.y << " " << hit.z << " " << hit.id << std::endl;
+    }
+    //auto responce = cpuCalculateRetinaResponce(grid, hits, 1);
+    //auto restored = retinaRestores(demenison, responce);
+    //output[i] = putGoodHits(restored, hits, minimalResponce);
   }
-  //auto responce = calculateRetinaResponse(grid, hits);
-  //auto restored = retinaRestores(demenison, responce);
-  //output = putGoodHits(restored, hits, minimalResponce);
   return 0;
 }
