@@ -82,9 +82,9 @@ namespace {
       Track extended(track);
       for (const Hit& hit: hits)
       {
-        if (extended.hitsNum < MAX_TRACK_SIZE && false) //todo: Some condtion between hit and track
+        if (false) //todo: Some condtion between hit and track
         {
-          extended.hits[extended.hitsNum++] = hit.id;
+          extended.addHit(hit.id);
         }
       }
       extendedTracks.push_back(extended);
@@ -117,10 +117,7 @@ int cpuRetinaInvocation(
     auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     auto restored = retinaRestores(dimensions, grid, responces);
     auto tracksWithHits = putEssentialHits(restored, hits);
-    for (auto& hit : hits)
-   {
-     std::cerr << hit.x << " " << hit.y << " " << hit.z << " " << hit.id << std::endl;
-    }
+    
   }
   return 0;
 }

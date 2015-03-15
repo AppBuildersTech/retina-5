@@ -79,12 +79,14 @@ TrackPure operator*(const TrackPure& one, const double alpha);
 TrackPure operator+(const TrackPure& one, const TrackPure& other);
 
 struct Track {
-  float const xOnZ0;
-  float const yOnZ0;
-  float const dxOverDz;
-  float const dyOverDz;
+private:
+  float xOnZ0;
+  float yOnZ0;
+  float dxOverDz;
+  float dyOverDz;
   int hitsNum;
   int hits[MAX_TRACK_SIZE];
+public:
   Track(const TrackPure& track) : 
     xOnZ0(track.getXOnZ0()), 
     yOnZ0(track.getYOnZ0()), 
@@ -92,6 +94,26 @@ struct Track {
     dyOverDz(track.getDyOverDz())
   {      
   }
+  Track() = default;
+  Track(const Track&) = default;
+  void addHit(int hitId)
+  {
+    hits[hitsNum++] = hitId;
+  }
+  Track& operator=(const Track& other)
+  {
+      xOnZ0 = other.xOnZ0;
+      yOnZ0 = other.yOnZ0;
+      dxOverDz = other.dxOverDz;
+      dyOverDz = other.dyOverDz;
+      hitsNum = other.hitsNum;
+      for (int i = 0; i < hitsNum; ++i)
+      {
+        hits[i] = other.hits[i];
+      }
+      return *this;
+  }
+  Track(Track&&) = default;
   
 };
 

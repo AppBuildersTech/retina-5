@@ -31,11 +31,11 @@ std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
   return parsedHits;
 }
 
-/* todo: put solutionTracks in output this way
-   if (*num_tracks > 0) {
-    solution.resize(*num_tracks * sizeof(Track));
-    Track * solutionTracks = (Track*)&solution[0];
-    for (size_t i = 0; i != *num_tracks; ++i)
-      solutionTracks[i] = tracks[h_track_indexes[i]];
-  }
-*/
+std::vector<uint8_t>  putTracksInOutput(const std::vector<Track>& tracks)
+{
+  std::vector<uint8_t> output(tracks.size() * sizeof(Track));
+  Track * outputPtr = (Track*)&output[0];
+  for (size_t i = 0; i != tracks.size(); ++i)
+    outputPtr[i] = tracks[i];
+  return output;
+}
