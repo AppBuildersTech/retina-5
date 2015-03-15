@@ -6,12 +6,12 @@
 namespace {
   TrackPure generateTrackFromIndex(const std::vector<int>& indexes, const std::vector<Dimension>& dim)
   {
-      TrackPure ans;
-      ans.x0 = dim[0].get(indexes[0]);
-      ans.y0 = dim[1].get(indexes[1]);
-      ans.tx = dim[2].get(indexes[2]);
-      ans.ty = dim[3].get(indexes[3]);
-      return ans;
+    return TrackPure(
+      dim[0].getGridBoarder(indexes[0]),
+      dim[1].getGridBoarder(indexes[1]),
+      dim[2].getGridBoarder(indexes[2]),
+      dim[3].getGridBoarder(indexes[3])
+    );
   }
 
   std::vector<TrackPure> retinaRestores(const std::vector<Dimension>& dimensions, const std::vector<TrackPure>& grid, const std::vector<double>& responce)
@@ -71,10 +71,10 @@ int cpuRetinaInvocation(
 {
   std::vector<Dimension> dimensions = 
     { 
-      Dimension(MIN_X0, MAX_X0, GRID_SIZE_X0),
-      Dimension(MIN_Y0, MAX_Y0, GRID_SIZE_Y0),
-      Dimension(MIN_XT, MAX_XT, GRID_SIZE_XT),
-      Dimension(MIN_YT, MAX_YT, GRID_SIZE_YT)
+      Dimension(MIN_X_ON_Z0, MAX_X_ON_Z0, GRID_SIZE_X_ON_Z0),
+      Dimension(MIN_Y_ON_Z0, MAX_Y_ON_Z0, GRID_SIZE_Y_ON_Z0),
+      Dimension(MIN_DX_OVER_DZ, MAX_DX_OVER_DZ, GRID_SIZE_DX_OVER_DZ),
+      Dimension(MIN_DY_OVER_DZ, MAX_DY_OVER_DZ, GRID_SIZE_DY_OVER_DZ)
     };
   auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
   for (unsigned int i = 0; i < input.size(); ++i)
