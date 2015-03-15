@@ -4,17 +4,24 @@
 #include "grid.h"
 #include "physics.h"
 namespace {
-  TrackPure generateTrackFromIndex(const std::vector<int>& indexes, const std::vector<Dimension>& dim)
+  TrackPure generateTrackFromIndex(
+    const std::vector<int>& multiIndex,
+    const std::vector<Dimension>& dim
+  )
   {
     return TrackPure(
-      dim[0].getGridBoarder(indexes[0]),
-      dim[1].getGridBoarder(indexes[1]),
-      dim[2].getGridBoarder(indexes[2]),
-      dim[3].getGridBoarder(indexes[3])
+      dim[0].getGridBoarder(multiIndex[0]),
+      dim[1].getGridBoarder(multiIndex[1]),
+      dim[2].getGridBoarder(multiIndex[2]),
+      dim[3].getGridBoarder(multiIndex[3])
     );
   }
 
-  std::vector<TrackPure> retinaRestores(const std::vector<Dimension>& dimensions, const std::vector<TrackPure>& grid, const std::vector<double>& responce)
+  std::vector<TrackPure> retinaRestores(
+    const std::vector<Dimension>& dimensions,
+    const std::vector<TrackPure>& grid,
+    const std::vector<double>& responce
+  )
   {
     int gridSizeNoBoarders = calculateGridSize(dimensions, 1);
     std::vector<int> indexes(dimensions.size(), 1);
@@ -46,7 +53,11 @@ namespace {
     return restored;
   }
 
-  std::vector<double> cpuCalculateRetinaResponces(const std::vector<TrackPure>& grid, const std::vector<Hit>& hits, double sharpness)
+  std::vector<double> cpuCalculateRetinaResponces(
+    const std::vector<TrackPure>& grid,
+    const std::vector<Hit>& hits,
+    double sharpness
+  )
   {
     std::vector<double> responces(grid.size());
     for (unsigned int i = 0; i < grid.size(); ++i) 
@@ -59,15 +70,38 @@ namespace {
     }
     return responces;
   }
+  std::vector<Track> putEssentialHits(
+    const std::vector<TrackPure>& tracks,
+    const std::vector<Hit>& hits
+  )
+  {
+    std::vector<Track> extendedTracks;
+    extendedTracks.reserve(tracks.size());
+    for (const TrackPure& track: tracks)
+    {
+      Track extended(track);
+      for (const Hit& hit: hits)
+      {
+        if (extended.hitsNum < MAX_TRACK_SIZE && false) //todo: Some condtion between hit and track
+        {
+          extended.hits[extended.hitsNum++] = hit.id;
+        }
+      }
+      extendedTracks.push_back(extended);
+    }
+    return extendedTracks;
+  }
 }
 /**
  * Common entrypoint for Gaudi and non-Gaudi
  * @param input  
  * @param output 
  */
+#include<iostream>
 int cpuRetinaInvocation(
     const std::vector<const std::vector<uint8_t>* > & input,
-    std::vector<std::vector<uint8_t> > & output) 
+    std::vector<std::vector<uint8_t> > & output
+)
 {
   std::vector<Dimension> dimensions = 
     { 
@@ -79,11 +113,14 @@ int cpuRetinaInvocation(
   auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
   for (unsigned int i = 0; i < input.size(); ++i)
   {
-    auto in = *input[i];
-    auto hits = parseHitsFromInput(const_cast<uint8_t*>(&in[0]), in.size());
-    auto responces = cpuCalculateRetinaResponces(grid, hits, 1.0);
+    auto hits = parseHitsFromInput(const_cast<uint8_t*>(&(*input[i])[0]), input[i]->size());
+    auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     auto restored = retinaRestores(dimensions, grid, responces);
-    //output[i] = putGoodHits(restored, hits, minimalResponce);
+    auto tracksWithHits = putEssentialHits(restored, hits);
+    for (auto& hit : hits)
+   {
+     std::cerr << hit.x << " " << hit.y << " " << hit.z << " " << hit.id << std::endl;
+    }
   }
   return 0;
 }

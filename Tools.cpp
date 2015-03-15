@@ -17,13 +17,16 @@ std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
   if (input != end)
     throw std::runtime_error("failed to deserialize event"); 
   
-  std::vector<Hit> parsedHits(h_no_hits);
+  std::vector<Hit> parsedHits;
+  parsedHits.reserve(h_no_hits);
   for (int i = 0; i < h_no_hits; ++i)
   {
-    parsedHits[i].id = h_hit_IDs[i];
-    parsedHits[i].x = h_hit_Xs[i];
-    parsedHits[i].y = h_hit_Ys[i];
-    parsedHits[i].z = h_hit_Zs[i];
+    parsedHits.push_back(Hit(
+      h_hit_Xs[i],
+      h_hit_Ys[i],
+      h_hit_Zs[i],
+      h_hit_IDs[i]
+    ));
   }
   return parsedHits;
 }

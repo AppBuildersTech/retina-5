@@ -16,40 +16,60 @@ const int GRID_SIZE_DX_OVER_DZ = 5;
 const double MIN_DY_OVER_DZ = -100, MAX_DY_OVER_DZ = 100;
 const int GRID_SIZE_DY_OVER_DZ = 5;
 
+const double RETINA_SHARPNESS_COEFFICIENT = 100;
+
 const int MAX_TRACK_SIZE = 24;
 
 struct Hit {
-  float x;
-  float y;
-  float z;
-  uint32_t id;
-};
-
-struct Track {
-  float x0;
-  float y0;
-  float tx;
-  float ty;
-
-  int hitsNum;
-  int hits[MAX_TRACK_SIZE];
+  float const x;
+  float const y;
+  float const z;
+  uint32_t const id;
+  Hit(float x, float y, float z, uint32_t id) :
+    x(x),
+    y(y),
+    z(z),
+    id(id)
+  {
+  }
 };
 
 struct TrackPure { 
     //coefficients of lineEquation x = track.xOnZ0 + track.dxOverDz * z
     //                            y = track.yOnZ0 + track.dyOverDz * z;
+private:
+  float xOnZ0;
+  float yOnZ0;
+  float dxOverDz;
+  float dyOverDz;
 public:
-  float const xOnZ0;
-  float const yOnZ0;
-  float const dxOverDz;
-  float const dyOverDz;  
   TrackPure(float x0, float y0, float tx, float ty) : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty) {}
   TrackPure() = default;
   TrackPure(TrackPure&&) = default;
   
+  inline float getXOnZ0() const
+  {
+    return xOnZ0;
+  }  
+  inline float getYOnZ0() const
+  {
+    return yOnZ0;  
+  }  
+  inline float getDxOverDz() const
+  {
+    return dxOverDz;
+  }
+  inline float getDyOverDz() const
+  {
+    return dyOverDz;
+  }  
   TrackPure& operator=(const TrackPure& other) 
   {    
-      return (*this) = other;
+    xOnZ0 = other.xOnZ0;
+    yOnZ0 = other.yOnZ0;
+    dxOverDz = other.dxOverDz;
+    dyOverDz = other.dyOverDz;
+    return (*this);
   }
   
 };
@@ -57,6 +77,24 @@ public:
 TrackPure operator*(const TrackPure& one, const double alpha);
 
 TrackPure operator+(const TrackPure& one, const TrackPure& other);
+
+struct Track {
+  float const xOnZ0;
+  float const yOnZ0;
+  float const dxOverDz;
+  float const dyOverDz;
+  int hitsNum;
+  int hits[MAX_TRACK_SIZE];
+  Track(const TrackPure& track) : 
+    xOnZ0(track.getXOnZ0()), 
+    yOnZ0(track.getYOnZ0()), 
+    dxOverDz(track.getDxOverDz()), 
+    dyOverDz(track.getDyOverDz())
+  {      
+  }
+  
+};
+
 
 
 double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit);
