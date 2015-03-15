@@ -16,7 +16,7 @@ const int GRID_SIZE_DX_OVER_DZ = 5;
 const double MIN_DY_OVER_DZ = -100, MAX_DY_OVER_DZ = 100;
 const int GRID_SIZE_DY_OVER_DZ = 5;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 100;
+const double RETINA_SHARPNESS_COEFFICIENT = 1;
 
 const int MAX_TRACK_SIZE = 24;
 
@@ -46,6 +46,7 @@ public:
   TrackPure(float x0, float y0, float tx, float ty) : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty) {}
   TrackPure() = default;
   TrackPure(TrackPure&&) = default;
+  TrackPure& operator=(const TrackPure& other) = default;
   
   inline float getXOnZ0() const
   {
@@ -63,15 +64,6 @@ public:
   {
     return dyOverDz;
   }  
-  TrackPure& operator=(const TrackPure& other) 
-  {    
-    xOnZ0 = other.xOnZ0;
-    yOnZ0 = other.yOnZ0;
-    dxOverDz = other.dxOverDz;
-    dyOverDz = other.dyOverDz;
-    return (*this);
-  }
-  
 };
 
 TrackPure operator*(const TrackPure& one, const double alpha);
@@ -95,25 +87,15 @@ public:
   {      
   }
   Track() = default;
-  Track(const Track&) = default;
+  Track(const Track& other) = default;
+  Track& operator=(const Track& other) = default;
+  Track(Track&&) = default;
+  
   void addHit(int hitId)
   {
-    hits[hitsNum++] = hitId;
+    if(hitsNum < MAX_TRACK_SIZE)
+      hits[hitsNum++] = hitId;
   }
-  Track& operator=(const Track& other)
-  {
-      xOnZ0 = other.xOnZ0;
-      yOnZ0 = other.yOnZ0;
-      dxOverDz = other.dxOverDz;
-      dyOverDz = other.dyOverDz;
-      hitsNum = other.hitsNum;
-      for (int i = 0; i < hitsNum; ++i)
-      {
-        hits[i] = other.hits[i];
-      }
-      return *this;
-  }
-  Track(Track&&) = default;
   
 };
 

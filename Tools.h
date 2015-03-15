@@ -7,3 +7,7 @@
 
 std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size);
 
+void putTracksInOutputFormat(
+  const std::vector<Track>& tracks,
+  std::vector<uint8_t>& output
+);

@@ -31,11 +31,13 @@ std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
   return parsedHits;
 }
 
-std::vector<uint8_t>  putTracksInOutput(const std::vector<Track>& tracks)
+void putTracksInOutputFormat(
+  const std::vector<Track>& tracks,
+  std::vector<uint8_t>& output
+)
 {
-  std::vector<uint8_t> output(tracks.size() * sizeof(Track));
+  output = std::vector<uint8_t>(tracks.size() * sizeof(Track));
   Track * outputPtr = (Track*)&output[0];
   for (size_t i = 0; i != tracks.size(); ++i)
     outputPtr[i] = tracks[i];
-  return output;
 }

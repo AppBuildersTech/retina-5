@@ -3,6 +3,8 @@
 #include "cpuRetina.h"
 #include "grid.h"
 #include "physics.h"
+#include "Tools.h"
+
 namespace {
   TrackPure generateTrackFromIndex(
     const std::vector<int>& multiIndex,
@@ -38,6 +40,7 @@ namespace {
           isLocalMaximum = false;
         }
       }
+      isLocalMaximum = true; // Debug code
       if (isLocalMaximum)
       {
         TrackPure answer = grid[currentIndex] * responce[currentIndex];
@@ -82,7 +85,7 @@ namespace {
       Track extended(track);
       for (const Hit& hit: hits)
       {
-        if (false) //todo: Some condtion between hit and track
+        if (true) //Please watch this condition
         {
           extended.addHit(hit.id);
         }
@@ -97,7 +100,6 @@ namespace {
  * @param input  
  * @param output 
  */
-#include<iostream>
 int cpuRetinaInvocation(
     const std::vector<const std::vector<uint8_t>* > & input,
     std::vector<std::vector<uint8_t> > & output
@@ -117,7 +119,7 @@ int cpuRetinaInvocation(
     auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     auto restored = retinaRestores(dimensions, grid, responces);
     auto tracksWithHits = putEssentialHits(restored, hits);
-    
+    putTracksInOutputFormat(tracksWithHits, output[i]);
   }
   return 0;
 }
