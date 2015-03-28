@@ -41,7 +41,7 @@ namespace {
         }
       }
       isLocalMaximum = true; // Debug code
-      if (isLocalMaximum)
+      if (responce[currentIndex] > 1e-9 && isLocalMaximum)
       {
         TrackPure answer = grid[currentIndex] * responce[currentIndex];
         double sum_responce = 0;
@@ -82,10 +82,10 @@ namespace {
     extendedTracks.reserve(tracks.size());
     for (const TrackPure& track: tracks)
     {
-      Track extended(track);
+      Track extended;
       for (const Hit& hit: hits)
       {
-        if (true) //Please watch this condition
+        if (getDistanceFromTrackToHit(track, hit) < 1e-3) //Please watch this condition
         {
           extended.addHit(hit.id);
         }
@@ -105,6 +105,7 @@ int cpuRetinaInvocation(
     std::vector<std::vector<uint8_t> > & output
 )
 {
+  output.resize(input.size());
   std::vector<Dimension> dimensions = 
     { 
       Dimension(MIN_X_ON_Z0, MAX_X_ON_Z0, GRID_SIZE_X_ON_Z0),
@@ -113,7 +114,7 @@ int cpuRetinaInvocation(
       Dimension(MIN_DY_OVER_DZ, MAX_DY_OVER_DZ, GRID_SIZE_DY_OVER_DZ)
     };
   auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
-  for (unsigned int i = 0; i < input.size(); ++i)
+  for (size_t i = 0; i < input.size(); ++i)
   {
     auto hits = parseHitsFromInput(const_cast<uint8_t*>(&(*input[i])[0]), input[i]->size());
     auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);

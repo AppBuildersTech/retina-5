@@ -43,24 +43,24 @@ private:
   float dxOverDz;
   float dyOverDz;
 public:
-  TrackPure(float x0, float y0, float tx, float ty) : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty) {}
+  TrackPure(float x0, float y0, float tx, float ty) noexcept : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
   TrackPure() = default;
   TrackPure(TrackPure&&) = default;
   TrackPure& operator=(const TrackPure& other) = default;
   
-  inline float getXOnZ0() const
+  inline float getXOnZ0() const noexcept
   {
     return xOnZ0;
   }  
-  inline float getYOnZ0() const
+  inline float getYOnZ0() const noexcept 
   {
     return yOnZ0;  
   }  
-  inline float getDxOverDz() const
+  inline float getDxOverDz() const noexcept 
   {
     return dxOverDz;
   }
-  inline float getDyOverDz() const
+  inline float getDyOverDz() const noexcept
   {
     return dyOverDz;
   }  
@@ -71,27 +71,10 @@ TrackPure operator*(const TrackPure& one, const double alpha);
 TrackPure operator+(const TrackPure& one, const TrackPure& other);
 
 struct Track {
-private:
-  float xOnZ0;
-  float yOnZ0;
-  float dxOverDz;
-  float dyOverDz;
+public:
   int hitsNum;
   int hits[MAX_TRACK_SIZE];
-public:
-  Track(const TrackPure& track) : 
-    xOnZ0(track.getXOnZ0()), 
-    yOnZ0(track.getYOnZ0()), 
-    dxOverDz(track.getDxOverDz()), 
-    dyOverDz(track.getDyOverDz())
-  {      
-  }
-  Track() = default;
-  Track(const Track& other) = default;
-  Track& operator=(const Track& other) = default;
-  Track(Track&&) = default;
-  
-  void addHit(int hitId)
+  inline void addHit(int hitId) noexcept
   {
     if(hitsNum < MAX_TRACK_SIZE)
       hits[hitsNum++] = hitId;
@@ -101,6 +84,6 @@ public:
 
 
 
-double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit);
+double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept;
 
 std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size);
