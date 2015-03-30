@@ -106,17 +106,18 @@ int cpuRetinaInvocation(
 )
 {
   output.resize(input.size());
-  std::vector<Dimension> dimensions = 
-    { 
-      Dimension(MIN_X_ON_Z0, MAX_X_ON_Z0, GRID_SIZE_X_ON_Z0),
-      Dimension(MIN_Y_ON_Z0, MAX_Y_ON_Z0, GRID_SIZE_Y_ON_Z0),
-      Dimension(MIN_DX_OVER_DZ, MAX_DX_OVER_DZ, GRID_SIZE_DX_OVER_DZ),
-      Dimension(MIN_DY_OVER_DZ, MAX_DY_OVER_DZ, GRID_SIZE_DY_OVER_DZ)
-    };
-  auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
   for (size_t i = 0; i < input.size(); ++i)
   {
     auto hits = parseHitsFromInput(const_cast<uint8_t*>(&(*input[i])[0]), input[i]->size());
+    ParametrsSpaceInfo info = generateParemetrsFromData(hits);
+    std::vector<Dimension> dimensions = 
+      { 
+        Dimension(info.minX0, info.maxX0, GRID_SIZE_X_ON_Z0),
+        Dimension(info.minX0, info.maxY0, GRID_SIZE_Y_ON_Z0),
+        Dimension(info.minDxOverDz, info.maxDxOverDz, GRID_SIZE_DX_OVER_DZ),
+        Dimension(info.minDyOverDz, info.maxDyOverDz, GRID_SIZE_DY_OVER_DZ)
+      };
+    auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
     auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     auto restored = retinaRestores(dimensions, grid, responces);
     auto tracksWithHits = putEssentialHits(restored, hits);

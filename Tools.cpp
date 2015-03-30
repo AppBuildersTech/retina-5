@@ -1,5 +1,14 @@
 #include "Tools.h"
 
+#include <algorithm>
+#include <iostream>
+
+void outMinMax(const std::string& name, const float * begin, int size)
+{
+  std::cerr << name << " " << *std::min_element(begin, begin + size) 
+    << " " << *std::max_element(begin, begin + size) << std::endl;
+  
+}
 std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
 {
   uint8_t * end = input + size;
@@ -16,7 +25,9 @@ std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
 
   if (input != end)
     throw std::runtime_error("failed to deserialize event"); 
-  
+  outMinMax("X", h_hit_Xs, h_no_hits);
+  outMinMax("Y", h_hit_Ys, h_no_hits);
+  outMinMax("Z", h_hit_Zs, h_no_hits);
   std::vector<Hit> parsedHits;
   parsedHits.reserve(h_no_hits);
   for (int i = 0; i < h_no_hits; ++i)
