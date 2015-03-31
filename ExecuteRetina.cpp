@@ -22,7 +22,8 @@ int independent_execute(
 
 void independent_post_execute(const std::vector<std::vector<uint8_t> > & output) {
     DEBUG << "post_execute invoked" << std::endl;
-    DEBUG << "Size of output: " << output.size() << " B" << std::endl;
+    for (size_t i = 0; i < output.size(); ++i)
+      DEBUG << "Size of output[" <<  i << "]: " << output[i].size() << " B" << std::endl;
 }
 
 int retina(

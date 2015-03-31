@@ -1,15 +1,14 @@
 #include "Tools.h"
 
 #include <algorithm>
-#include <iostream>
 
-void outMinMax(const std::string& name, const float * begin, int size)
+void setMinMax(double& min, double& max, const float * begin, int size)
 {
-  std::cerr << name << " " << *std::min_element(begin, begin + size) 
-    << " " << *std::max_element(begin, begin + size) << std::endl;
-  
+  auto result = std::minmax(begin, begin + size);
+  min = *result.first;
+  max = *result.second;
 }
-std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
+std::vector<Hit> parseHitsFromInputAndNormalize(uint8_t * input, size_t size)
 {
   uint8_t * end = input + size;
 
@@ -25,17 +24,20 @@ std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size)
 
   if (input != end)
     throw std::runtime_error("failed to deserialize event"); 
-  outMinMax("X", h_hit_Xs, h_no_hits);
-  outMinMax("Y", h_hit_Ys, h_no_hits);
-  outMinMax("Z", h_hit_Zs, h_no_hits);
+  
+  double minX, maxX, minY, maxY, minZ, maxZ;
+  setMinMax(minX, maxX, h_hit_Xs, h_no_hits);
+  setMinMax(minY, maxY, h_hit_Ys, h_no_hits);
+  setMinMax(minZ, maxZ, h_hit_Zs, h_no_hits);
+  
   std::vector<Hit> parsedHits;
   parsedHits.reserve(h_no_hits);
   for (int i = 0; i < h_no_hits; ++i)
   {
     parsedHits.push_back(Hit(
-      h_hit_Xs[i],
-      h_hit_Ys[i],
-      h_hit_Zs[i],
+      (h_hit_Xs[i] - minX) / (maxX - minX),
+      (h_hit_Ys[i] - minY) / (maxY - minY),
+      (h_hit_Zs[i] - minZ) / (maxZ - minZ),
       h_hit_IDs[i]
     ));
   }

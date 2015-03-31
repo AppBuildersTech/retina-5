@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include "cpuRetina.h"
 #include "grid.h"
@@ -35,16 +36,16 @@ namespace {
       bool isLocalMaximum = true;
       for (int neighbour : neighbours)
       {
+        std::cerr << neighbour << std::endl;
         if (responce[neighbour] > responce[currentIndex])
         {
           isLocalMaximum = false;
         }
       }
-      isLocalMaximum = true; // Debug code
       if (responce[currentIndex] > 1e-9 && isLocalMaximum)
       {
         TrackPure answer = grid[currentIndex] * responce[currentIndex];
-        double sum_responce = 0;
+        double sum_responce = responce[currentIndex];
         for (int neighbour : neighbours)
         {
           answer = answer + grid[neighbour] * responce[neighbour];
@@ -85,7 +86,7 @@ namespace {
       Track extended;
       for (const Hit& hit: hits)
       {
-        if (getDistanceFromTrackToHit(track, hit) < 1e-3) //Please watch this condition
+        if (getDistanceFromTrackToHit(track, hit) < 1) //Please watch this condition
         {
           extended.addHit(hit.id);
         }
@@ -108,14 +109,13 @@ int cpuRetinaInvocation(
   output.resize(input.size());
   for (size_t i = 0; i < input.size(); ++i)
   {
-    auto hits = parseHitsFromInput(const_cast<uint8_t*>(&(*input[i])[0]), input[i]->size());
-    ParametrsSpaceInfo info = generateParemetrsFromData(hits);
+    auto hits = parseHitsFromInputAndNormalize(const_cast<uint8_t*>(&(*input[i])[0]), input[i]->size());
     std::vector<Dimension> dimensions = 
       { 
-        Dimension(info.minX0, info.maxX0, GRID_SIZE_X_ON_Z0),
-        Dimension(info.minX0, info.maxY0, GRID_SIZE_Y_ON_Z0),
-        Dimension(info.minDxOverDz, info.maxDxOverDz, GRID_SIZE_DX_OVER_DZ),
-        Dimension(info.minDyOverDz, info.maxDyOverDz, GRID_SIZE_DY_OVER_DZ)
+        Dimension(-3, 4, GRID_SIZE_X_ON_Z0),
+        Dimension(-3, 4, GRID_SIZE_Y_ON_Z0),
+        Dimension(-4, 4, GRID_SIZE_DX_OVER_DZ),
+        Dimension(-4, 4, GRID_SIZE_DY_OVER_DZ)
       };
     auto grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
     auto responces = cpuCalculateRetinaResponces(grid, hits, RETINA_SHARPNESS_COEFFICIENT);

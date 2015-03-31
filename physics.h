@@ -4,12 +4,12 @@
 #include <cstdint>
 #include <stdexcept>
 
-const int GRID_SIZE_X_ON_Z0 = 10;
-const int GRID_SIZE_Y_ON_Z0 = 10;
-const int GRID_SIZE_DX_OVER_DZ = 5;
-const int GRID_SIZE_DY_OVER_DZ = 5;
+const int GRID_SIZE_X_ON_Z0 = 3;
+const int GRID_SIZE_Y_ON_Z0 = 3;
+const int GRID_SIZE_DX_OVER_DZ = 3;
+const int GRID_SIZE_DY_OVER_DZ = 3;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 100;
+const double RETINA_SHARPNESS_COEFFICIENT = 1000;
 
 const int MAX_TRACK_SIZE = 24;
 struct ParametrsSpaceInfo
@@ -87,6 +87,6 @@ public:
 
 double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept;
 
-std::vector<Hit> parseHitsFromInput(uint8_t * input, size_t size);
+std::vector<Hit> parseHitsFromInputAndNormalize(uint8_t * input, size_t size);
 
 ParametrsSpaceInfo generateParemetrsFromData(const std::vector<Hit>& hits);
