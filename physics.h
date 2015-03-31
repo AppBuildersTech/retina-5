@@ -29,34 +29,13 @@ struct Hit {
 struct TrackPure { 
     //coefficients of lineEquation x = track.xOnZ0 + track.dxOverDz * z
     //                            y = track.yOnZ0 + track.dyOverDz * z;
-private:
+public:
   float xOnZ0;
   float yOnZ0;
   float dxOverDz;
   float dyOverDz;
-public:
   TrackPure(float x0, float y0, float tx, float ty) noexcept : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
   TrackPure() = default;
-  TrackPure(TrackPure&&) = default;
-  TrackPure(const TrackPure&) = default;
-  TrackPure& operator=(const TrackPure& other) = default;
-  
-  inline float getXOnZ0() const noexcept
-  {
-    return xOnZ0;
-  }  
-  inline float getYOnZ0() const noexcept 
-  {
-    return yOnZ0;  
-  }  
-  inline float getDxOverDz() const noexcept 
-  {
-    return dxOverDz;
-  }
-  inline float getDyOverDz() const noexcept
-  {
-    return dyOverDz;
-  }  
 };
 
 TrackPure operator*(const TrackPure& one, const double alpha);

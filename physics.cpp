@@ -3,20 +3,20 @@
 TrackPure operator*(const TrackPure& one, const double alpha)
 {
   return TrackPure(
-      one.getXOnZ0() * alpha,
-      one.getYOnZ0() * alpha,
-      one.getDxOverDz() * alpha,
-      one.getDyOverDz() * alpha
+      one.xOnZ0 * alpha,
+      one.yOnZ0 * alpha,
+      one.dxOverDz * alpha,
+      one.dyOverDz * alpha
   );
 }
 
 TrackPure operator+(const TrackPure& one, const TrackPure& other) 
 {
   return TrackPure(
-    one.getXOnZ0() + other.getXOnZ0(),
-    one.getYOnZ0() + other.getYOnZ0(),
-    one.getDxOverDz() + other.getDxOverDz(),
-    one.getDyOverDz() + other.getDyOverDz()
+    one.xOnZ0 + other.xOnZ0,
+    one.yOnZ0 + other.yOnZ0,
+    one.dxOverDz + other.dxOverDz,
+    one.dyOverDz + other.dyOverDz
   );
 }
 
@@ -27,6 +27,6 @@ inline double square(double x)
 
 double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept
 {
-  return square(hit.x - track.getXOnZ0() - track.getDxOverDz() * hit.z) +
-         square(hit.y - track.getYOnZ0() - track.getDyOverDz() * hit.z);
+  return square(hit.x - track.xOnZ0 - track.dxOverDz * hit.z) +
+         square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
 }
