@@ -7,7 +7,7 @@ double Dimension::getGridBoarder(int index) const
 {
   if (index < 0 || index >= gridSize)
     throw std::logic_error("Bad index of gridBoarder");
-  return min + (max - min) / (gridSize - 1) * index;
+  return min + quant * index;
 }
 
 int calculateGridSize(const std::vector<Dimension>& dimensions, const int noBoarders)

@@ -5,7 +5,7 @@
 
 #include "physics.h"
 
-std::vector<Hit> parseHitsFromInputAndNormalize(uint8_t * input, size_t size);
+std::vector<Hit> parseHitsFromInputAndNormalize(const uint8_t * input, size_t size);
 
 void putTracksInOutputFormat(
   const std::vector<Track>& tracks,

@@ -4,10 +4,19 @@
 
 struct Dimension
 {
-  const double min;
-  const double max;
-  const int gridSize;
-  Dimension(double min, double max, int gridSize) : min(min), max(max), gridSize(gridSize) {}
+  double min;
+  double max;
+  double quant;
+  size_t gridSize;
+  Dimension(double min_, double max_, size_t gridSize_)
+  {
+    if (gridSize_ < 2)
+      throw std::runtime_error("Grid size must be > 1, given:" + gridSize_);
+    quant = (max_ - min_) / (gridSize_ - 1);
+    min = min_ - quant;
+    max = max_ + quant;
+    gridSize = gridSize_ + 2;
+  }
   
   double getGridBoarder(int index) const;
 };

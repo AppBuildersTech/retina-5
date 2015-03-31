@@ -8,9 +8,9 @@ void setMinMax(double& min, double& max, const float * begin, int size)
   min = *result.first;
   max = *result.second;
 }
-std::vector<Hit> parseHitsFromInputAndNormalize(uint8_t * input, size_t size)
+std::vector<Hit> parseHitsFromInputAndNormalize(const uint8_t * input, size_t size)
 {
-  uint8_t * end = input + size;
+  const uint8_t * end = input + size;
 
   int h_no_sensors       = *((int32_t*)input); input += sizeof(int32_t);
   int h_no_hits          = *((int32_t*)input); input += sizeof(int32_t);

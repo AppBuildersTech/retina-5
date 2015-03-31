@@ -4,28 +4,19 @@
 #include <cstdint>
 #include <stdexcept>
 
-const int GRID_SIZE_X_ON_Z0 = 3;
-const int GRID_SIZE_Y_ON_Z0 = 3;
-const int GRID_SIZE_DX_OVER_DZ = 3;
-const int GRID_SIZE_DY_OVER_DZ = 3;
+const int GRID_SIZE_X_ON_Z0 = 10;
+const int GRID_SIZE_Y_ON_Z0 = 10;
+const int GRID_SIZE_DX_OVER_DZ = 10;
+const int GRID_SIZE_DY_OVER_DZ = 10;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 1000;
-
-const int MAX_TRACK_SIZE = 24;
-struct ParametrsSpaceInfo
-{
-  double minX0, maxX0;
-  double minY0, maxY0;
-  double minDxOverDz, maxDxOverDz;
-  double minDyOverDz, maxDyOverDz;
-};
-
+const double RETINA_SHARPNESS_COEFFICIENT = 10;
+const size_t MAX_TRACK_SIZE = 24;
         
 struct Hit {
-  float const x;
-  float const y;
-  float const z;
-  uint32_t const id;
+  float x;
+  float y;
+  float z;
+  uint32_t id;
   Hit(float x, float y, float z, uint32_t id) :
     x(x),
     y(y),
@@ -47,6 +38,7 @@ public:
   TrackPure(float x0, float y0, float tx, float ty) noexcept : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
   TrackPure() = default;
   TrackPure(TrackPure&&) = default;
+  TrackPure(const TrackPure&) = default;
   TrackPure& operator=(const TrackPure& other) = default;
   
   inline float getXOnZ0() const noexcept
@@ -83,10 +75,4 @@ public:
   
 };
 
-
-
 double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept;
-
-std::vector<Hit> parseHitsFromInputAndNormalize(uint8_t * input, size_t size);
-
-ParametrsSpaceInfo generateParemetrsFromData(const std::vector<Hit>& hits);
