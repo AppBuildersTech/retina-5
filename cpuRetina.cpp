@@ -69,7 +69,7 @@ std::vector<double> cpuCalculateRetinaResponces(
     auto& track = grid[i];
     for (const Hit& hit : hits)
     {
-      responces[i] += exp(-getDistanceFromTrackToHit(track, hit) / sharpness);
+      responces[i] += calculateResponce(track, hit, sharpness);
     }
   }
   return responces;

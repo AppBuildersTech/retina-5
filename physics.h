@@ -1,23 +1,22 @@
 #pragma once
 
 #include <vector>
-#include <cstdint>
-#include <stdexcept>
+//#include <cstdint>
 
 const int GRID_SIZE_X_ON_Z0 = 10;
 const int GRID_SIZE_Y_ON_Z0 = 10;
 const int GRID_SIZE_DX_OVER_DZ = 10;
 const int GRID_SIZE_DY_OVER_DZ = 10;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 10;
-const size_t MAX_TRACK_SIZE = 24;
+const double RETINA_SHARPNESS_COEFFICIENT = 0.1;
+//const size_t MAX_TRACK_SIZE = 24;
         
 struct Hit {
   float x;
   float y;
   float z;
-  uint32_t id;
-  Hit(float x, float y, float z, uint32_t id) :
+  unsigned int id;
+  Hit(float x, float y, float z, unsigned int id) :
     x(x),
     y(y),
     z(z),
@@ -34,24 +33,25 @@ public:
   float yOnZ0;
   float dxOverDz;
   float dyOverDz;
-  TrackPure(float x0, float y0, float tx, float ty) noexcept : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
-  TrackPure() = default;
+  TrackPure(float x0, float y0, float tx, float ty)  : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
+  //TrackPure() = default;
 };
 
 TrackPure operator*(const TrackPure& one, const double alpha);
 
 TrackPure operator+(const TrackPure& one, const TrackPure& other);
 
-struct Track {
+/*struct Track {
 public:
   int hitsNum;
   int hits[MAX_TRACK_SIZE];
-  inline void addHit(int hitId) noexcept
+  inline void addHit(int hitId) 
   {
     if(hitsNum < MAX_TRACK_SIZE)
       hits[hitsNum++] = hitId;
   }
   
-};
+};*/
 
-double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept;
+double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) ;
+double calculateResponce(const TrackPure& track, const Hit& hit, double sharpness);
