@@ -3,11 +3,17 @@
 #include <vector>
 #include <cstdint>
 
-#include "physics.h"
+#include "Physics.h"
 
-std::vector<Hit> parseHitsFromInputAndNormalize(const uint8_t * input, size_t size);
+std::vector<Hit> parseHits(const uint8_t * input, size_t size);
 
 void putTracksInOutputFormat(
   const std::vector<Track>& tracks,
   std::vector<uint8_t>& output
 );
+
+void printSolution(
+  const std::vector<Track>& tracks, 
+  const std::vector<Hit>& hits,
+  std::ostream& stream
+); 

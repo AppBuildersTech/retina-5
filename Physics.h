@@ -17,12 +17,19 @@ struct Hit {
   float y;
   float z;
   uint32_t id;
-  Hit(float x, float y, float z, uint32_t id) :
+  uint32_t sensorId;
+  Hit(float x, float y, float z, uint32_t id, uint32_t sensorId) :
     x(x),
     y(y),
     z(z),
-    id(id)
+    id(id),
+    sensorId(sensorId)
   {
+  }
+  Hit() = default;
+  Hit(const Hit& other) : Hit(other.x, other.y, other.z, other.id, other.sensorId)
+  {
+      
   }
 };
 
@@ -51,6 +58,7 @@ public:
     if(hitsNum < MAX_TRACK_SIZE)
       hits[hitsNum++] = hitId;
   }
+  Track() :hitsNum(0) { }
   
 };
 

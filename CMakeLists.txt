@@ -10,22 +10,21 @@ FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20, code=sm_20)
 
 set (HEADERS 
-	cpuRetina.h
+	Retina.h
 	FileStdLogger.h
-	grid.h
-	ipch
-	physics.h
+	Grid.h
+	Physics.h
         ExecuteRetina.h
         Tools.h
 )
  
 set (SOURCES 
-	cpuRetina.cpp
+	Retina.cpp
 	IndependentEntrypoint.cpp
 	Logger.cpp
-	physics.cpp
+	Physics.cpp
         ExecuteRetina.cpp
-        grid.cpp
+        Grid.cpp
         Tools.cpp
 )
 

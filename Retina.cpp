@@ -1,11 +1,13 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <map>
 
-#include "cpuRetina.h"
-#include "grid.h"
-#include "physics.h"
+#include "Retina.h"
+#include "Grid.h"
+#include "Physics.h"
 #include "Tools.h"
+#include "Logger.h"
 
 TrackPure generateTrackFromIndex(
   const std::vector<int>& multiIndex,
@@ -20,7 +22,7 @@ TrackPure generateTrackFromIndex(
   );
 }
 
-std::vector<TrackPure> restoreBestTracksFromResponces(
+std::vector<TrackPure> restoreTracks(
   const std::vector<Dimension>& dimensions,
   const std::vector<TrackPure>& grid,
   const std::vector<double>& responce
@@ -57,7 +59,7 @@ std::vector<TrackPure> restoreBestTracksFromResponces(
   return restored;
 }
 
-std::vector<double> cpuCalculateRetinaResponces(
+std::vector<double> calculateResponses(
   const std::vector<TrackPure>& grid,
   const std::vector<Hit>& hits,
   double sharpness
@@ -75,43 +77,35 @@ std::vector<double> cpuCalculateRetinaResponces(
   return responces;
 }
 
-std::vector<Track> findHitsForTracks(
+std::vector<Track> findHits(
   const std::vector<TrackPure>& tracks,
   const std::vector<Hit>& hits
 )
 {
-  auto hits_copy = hits;
   std::vector<Track> extendedTracks;
   extendedTracks.reserve(tracks.size());
   for (const TrackPure& track: tracks)
   {
-    std::nth_element(hits_copy.begin(), hits_copy.end(), hits_copy.begin() + MAX_TRACK_SIZE,
-      [track](const Hit& a, const Hit& b)
-      {
-        return getDistanceFromTrackToHit(track, a) < getDistanceFromTrackToHit(track, b);
-      });
-
-    Track extended;
-    //Add best fitted, but it can add extra
-    for (int i = 0; i < MAX_TRACK_SIZE; ++i)
+    std::map<uint32_t, Hit> sensorBest;
+    for (const Hit& hit: hits) 
     {
-      extended.addHit(hits_copy[i].id);
+      if (!sensorBest.count(hit.sensorId) ||
+          getDistanceFromTrackToHit(track, sensorBest[hit.sensorId]) < 
+          getDistanceFromTrackToHit(track, hit))
+      {
+        sensorBest[hit.sensorId] = hit;
+      }
+    }
+    Track extended;
+    for (const auto& pair: sensorBest)
+    {
+      extended.addHit(pair.second.id);
     }
     extendedTracks.push_back(extended);
   }
   return extendedTracks;
 }
 
-std::vector<TrackPure> retinaAlgorithm(
-  const std::vector<Dimension>& dimensions,
-  const std::vector<TrackPure>& grid,
-  const std::vector<Hit>& hits,
-  const double retina_sharpness_coeffecient
-)
-{
-  const std::vector<double> responces = cpuCalculateRetinaResponces(grid, hits, retina_sharpness_coeffecient);
-  return restoreBestTracksFromResponces(dimensions, grid, responces);
-}
 /**
  * Common entrypoint for Gaudi and non-Gaudi
  * @param input  
@@ -134,10 +128,16 @@ int cpuRetinaInvocation(
   output.resize(input.size());
   for (size_t i = 0; i < input.size(); ++i)
   {
-    const std::vector<Hit> hits = parseHitsFromInputAndNormalize(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
-    const std::vector<TrackPure> restored = retinaAlgorithm(dimensions, grid, hits, RETINA_SHARPNESS_COEFFICIENT);
-    const std::vector<Track> tracksWithHits = findHitsForTracks(restored, hits);
+    const std::vector<Hit> hits = parseHits(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
+    for (const Hit& hit : hits)
+    {
+      std::cerr << hit.sensorId << std::endl;
+    }
+    const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
+    const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
+    const std::vector<Track> tracksWithHits = findHits(restored, hits);
     putTracksInOutputFormat(tracksWithHits, output[i]);
+    printSolution(tracksWithHits, hits, DEBUG);
   }
   return 0;
 }

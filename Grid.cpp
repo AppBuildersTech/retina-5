@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "grid.h"
+#include "Grid.h"
 
 
 double Dimension::getGridBoarder(int index) const
