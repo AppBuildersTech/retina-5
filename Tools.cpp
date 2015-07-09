@@ -13,32 +13,9 @@ void setMinMax(double& min, double& max, const float * begin, int size)
   max = *result.second;
 }
 
-//size_t findSensor(
-//    const std::vector<double>& sensors, 
-//    double position
-//) {
-//    auto larger = std::lower_bound(sensorsZs.begin(), sensorsZs.end(), position);
-//    if (larger == sensors.end()) {
-//        return sensors.size();
-//    }
-//    else if (larger == sensor.begin()) {
-//        return 0;
-//    }
-//    else {
-//        auto smaller = larger - 1;
-//        if (fabs(*larger - position) < fabs(*smaller - postion)) {
-//            return larger - sensors.begin();            
-//        }
-//        else {
-//            return smaller - sensors.begin();
-//        }
-//    }
-//}
-
 std::vector<Hit> parseHits(const uint8_t * input, size_t size)
 {
   const uint8_t * end = input + size;
-  std::cerr << "everything is perfect" << std::endl;
 
   int h_no_sensors       = *((int32_t*)input); input += sizeof(int32_t);
   int h_no_hits          = *((int32_t*)input); input += sizeof(int32_t);
@@ -60,21 +37,6 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
   
   std::vector<Hit> parsedHits;
   parsedHits.reserve(h_no_hits);
-  /*std::vector<double> sensors;
-  sensors.reserve(h_no_sensors);
-  for (size_t i = 0; i < h_no_sensors; ++i) {
-      sensors.push_back(h_sensor_Zs[i]);
-  }
-  for (int i = 0; i < h_no_hits; ++i)
-  {
-    parsedHits.push_back(Hit(
-      (h_hit_Xs[i] - minX) / (maxX - minX),
-      (h_hit_Ys[i] - minY) / (maxY - minY),
-      (h_hit_Zs[i] - minZ) / (maxZ - minZ),
-      h_hit_IDs[i],
-      findSensor(h_sensor_Zs, h_no_sensors, h_hit_Zs[i])    
-    ));
-  }*/
   for (uint32_t sensorId =  0; sensorId < h_no_sensors; ++sensorId)
   {
     for (int i = 0; i < h_sensor_hitNums[sensorId]; ++i) 
@@ -88,7 +50,6 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
         h_hit_IDs[hitId],
         sensorId
       );
-      std::cerr << parsedHits.rbegin()->sensorId << std::endl;
     }
   }
   return parsedHits;
@@ -108,7 +69,7 @@ void putTracksInOutputFormat(
 void printHit(const Hit& hit, std::ostream& stream) 
 {
   //const int hitNumber = track.hits[i];  todo: Why do we need this information
-  const int hitNumber = hit.id; 
+  const uint32_t hitNumber = hit.id; 
   
   stream << " " << std::setw(8) << hit.id << " (" << hitNumber << ")"
     << " module " << std::setw(2) << hit.sensorId
@@ -136,7 +97,6 @@ void printSolution(
     stream << "Track #" << trackId << ", length " << track.hitsNum << std::endl;
     for(int i = 0; i < track.hitsNum; ++i)
     {
-      std::cerr << hitMap[track.hits[i]].sensorId << std::endl;
       printHit(hitMap[track.hits[i]], stream);
     }
   }

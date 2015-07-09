@@ -129,10 +129,6 @@ int cpuRetinaInvocation(
   for (size_t i = 0; i < input.size(); ++i)
   {
     const std::vector<Hit> hits = parseHits(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
-    for (const Hit& hit : hits)
-    {
-      std::cerr << hit.sensorId << std::endl;
-    }
     const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
     const std::vector<Track> tracksWithHits = findHits(restored, hits);
