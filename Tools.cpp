@@ -68,10 +68,7 @@ void putTracksInOutputFormat(
 
 void printHit(const Hit& hit, std::ostream& stream) 
 {
-  //const int hitNumber = track.hits[i];  todo: Why do we need this information
-  const uint32_t hitNumber = hit.id; 
-  
-  stream << " " << std::setw(8) << hit.id << " (" << hitNumber << ")"
+  stream << " " << std::setw(8) << hit.id 
     << " module " << std::setw(2) << hit.sensorId
     << ", x " << std::setw(6) << hit.x
     << ", y " << std::setw(6) << hit.y

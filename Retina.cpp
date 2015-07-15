@@ -71,7 +71,7 @@ std::vector<double> calculateResponses(
     auto& track = grid[i];
     for (const Hit& hit : hits)
     {
-      responces[i] += exp(-getDistanceFromTrackToHit(track, hit) / sharpness);
+      responces[i] += exp(-getDistance(track, hit) / sharpness);
     }
   }
   return responces;
@@ -86,20 +86,24 @@ std::vector<Track> findHits(
   extendedTracks.reserve(tracks.size());
   for (const TrackPure& track: tracks)
   {
-    std::map<uint32_t, Hit> sensorBest;
+    std::map<uint32_t, Hit> sensorsBest;
     for (const Hit& hit: hits) 
     {
-      if (!sensorBest.count(hit.sensorId) ||
-          getDistanceFromTrackToHit(track, sensorBest[hit.sensorId]) < 
-          getDistanceFromTrackToHit(track, hit))
+      if (!sensorsBest.count(hit.sensorId) ||
+          getDistance(track, sensorsBest[hit.sensorId]) > 
+          getDistance(track, hit))
       {
-        sensorBest[hit.sensorId] = hit;
+        sensorsBest[hit.sensorId] = hit;
       }
     }
     Track extended;
-    for (const auto& pair: sensorBest)
+    for (const auto& pair: sensorsBest)
     {
-      extended.addHit(pair.second.id);
+      if (getDistance(track, pair.second) < 0.005)
+      {
+        extended.addHit(pair.second.id);
+      }
+      //std::cout << std::setprecision(8)<< getDistance(track, pair.second) << std::endl;
     }
     extendedTracks.push_back(extended);
   }

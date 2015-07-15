@@ -25,7 +25,7 @@ inline double square(double x)
   return x * x;
 }
 
-double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept
+double getDistance(const TrackPure& track, const Hit& hit) noexcept
 {
   return square(hit.x - track.xOnZ0 - track.dxOverDz * hit.z) +
          square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);

@@ -4,10 +4,11 @@
 #include <cstdint>
 #include <stdexcept>
 
-const int GRID_SIZE_X_ON_Z0 = 10;
-const int GRID_SIZE_Y_ON_Z0 = 10;
-const int GRID_SIZE_DX_OVER_DZ = 10;
-const int GRID_SIZE_DY_OVER_DZ = 10;
+const int GRID_SIZE = 70;
+const int GRID_SIZE_X_ON_Z0 = GRID_SIZE;
+const int GRID_SIZE_Y_ON_Z0 = GRID_SIZE;
+const int GRID_SIZE_DX_OVER_DZ = GRID_SIZE;
+const int GRID_SIZE_DY_OVER_DZ = GRID_SIZE;
 
 const double RETINA_SHARPNESS_COEFFICIENT = 10;
 const size_t MAX_TRACK_SIZE = 24;
@@ -62,4 +63,4 @@ public:
   
 };
 
-double getDistanceFromTrackToHit(const TrackPure& track, const Hit& hit) noexcept;
+double getDistance(const TrackPure& track, const Hit& hit) noexcept;
