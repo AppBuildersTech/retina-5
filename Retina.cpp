@@ -25,34 +25,25 @@ TrackPure generateTrackFromIndex(
 std::vector<TrackPure> restoreTracks(
   const std::vector<Dimension>& dimensions,
   const std::vector<TrackPure>& grid,
-  const std::vector<double>& responce
+  const std::vector<double>& responces
 )
 {
   int gridSizeNoBoarders = calculateGridSize(dimensions, 1);
   std::vector<int> indexes(dimensions.size(), 1);
   std::vector<TrackPure> restored;
+  const double threshold = getQuatile(responces, TRACK_THRESHOLD);
   for (int i = 0; i < gridSizeNoBoarders; ++i)
   {
     std::vector<int> neighbours = generateNeighboursIndexes(indexes, dimensions);
     int currentIndex = multiIndexToIndex(indexes, dimensions);
-    bool isLocalMaximum = true;
-    //std::cerr << responce[currentIndex] << std::endl;
-    isLocalMaximum = responce[currentIndex] > 2600;
-    /*for (int neighbour : neighbours)
+    if (responces[currentIndex] > threshold)
     {
-      if (responce[neighbour] > responce[currentIndex])
-      {
-        isLocalMaximum = false;
-      }
-    }*/
-    if (responce[currentIndex] > 1e-9 && isLocalMaximum)
-    {
-      TrackPure answer = grid[currentIndex] * responce[currentIndex];
-      double sum_responce = responce[currentIndex];
+      TrackPure answer = grid[currentIndex] * responces[currentIndex];
+      double sum_responce = responces[currentIndex];
       for (int neighbour : neighbours)
       {
-        answer = answer + grid[neighbour] * responce[neighbour];
-        sum_responce += responce[neighbour];
+        answer = answer + grid[neighbour] * responces[neighbour];
+        sum_responce += responces[neighbour];
       }
       restored.push_back(answer * (1.0 / sum_responce));      
     }
@@ -105,7 +96,6 @@ std::vector<Track> findHits(
       {
         extended.addHit(pair.second.id);
       }
-      //std::cout << std::setprecision(8)<< getDistance(track, pair.second) << std::endl;
     }
     extendedTracks.push_back(extended);
   }
@@ -137,15 +127,6 @@ int cpuRetinaInvocation(
     const std::vector<Hit> hits = parseHits(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
     const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
-//    for (const TrackPure& track: restored)
-//    {
-//      std::cout 
-//        << "x0 " << track.xOnZ0 
-//        << " y0 " << track.yOnZ0 
-//        << " dx " << track.dxOverDz 
-//        << " dy " << track.dyOverDz << std::endl; 
-//    }
-    //std::cerr << restored.size() << std::endl;
     const std::vector<Track> tracksWithHits = findHits(restored, hits);
     putTracksInOutputFormat(tracksWithHits, output[i]);
     printSolution(tracksWithHits, hits, DEBUG);

@@ -6,13 +6,6 @@
 #include <iomanip>
 #include <cassert>
 
-void setMinMax(double& min, double& max, const float * begin, int size)
-{
-  auto result = std::minmax_element(begin, begin + size);
-  min = *result.first;
-  max = *result.second;
-}
-
 std::vector<Hit> parseHits(const uint8_t * input, size_t size)
 {
   const uint8_t * end = input + size;
@@ -30,11 +23,13 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
   if (input != end)
     throw std::runtime_error("failed to deserialize event"); 
   
-  double minX, maxX, minY, maxY, minZ, maxZ;
-  setMinMax(minX, maxX, h_hit_Xs, h_no_hits);
-  setMinMax(minY, maxY, h_hit_Ys, h_no_hits);
-  setMinMax(minZ, maxZ, h_hit_Zs, h_no_hits);
-  
+  double minX = *std::min_element(h_hit_Xs, h_hit_Xs + h_no_hits);
+  double minY = *std::min_element(h_hit_Ys, h_hit_Ys + h_no_hits);
+  double minZ = *std::min_element(h_hit_Zs, h_hit_Zs + h_no_hits);
+  double maxX = *std::max_element(h_hit_Xs, h_hit_Xs + h_no_hits);
+  double maxY = *std::max_element(h_hit_Ys, h_hit_Ys + h_no_hits);
+  double maxZ = *std::max_element(h_hit_Zs, h_hit_Zs + h_no_hits);
+
   std::vector<Hit> parsedHits;
   parsedHits.reserve(h_no_hits);
   for (uint32_t sensorId =  0; sensorId < h_no_sensors; ++sensorId)
@@ -42,7 +37,6 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
     for (int i = 0; i < h_sensor_hitNums[sensorId]; ++i) 
     {
       int hitId = h_sensor_hitStarts[sensorId] + i;
-      //std::cerr << "hh" <<  h_hit_IDs[hitId] << std::endl;
       assert(hitId >= 0 && hitId < h_no_hits );
       parsedHits.emplace_back(
         (h_hit_Xs[hitId] - minX) / (maxX - minX),
@@ -87,7 +81,6 @@ void printSolution(
   std::map<uint32_t, Hit> hitMap;
   for (const Hit& hit: hits) {
     hitMap[hit.id] = hit;
-    //std::cerr  << hit.id << std::endl;
     assert(hitMap[hit.id].sensorId == hit.sensorId);
   }
   int id = 0;
@@ -106,5 +99,11 @@ void printSolution(
   }
 
   stream << std::endl;
+}
+
+double getQuatile(std::vector<double> data, double ratio)
+{
+  std::sort(data.begin(), data.end());
+  return data[data.size() * ratio];
 }
 

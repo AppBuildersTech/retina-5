@@ -17,3 +17,6 @@ void printSolution(
   const std::vector<Hit>& hits,
   std::ostream& stream
 ); 
+
+double getQuatile(std::vector<double> data, double ratio);
+
