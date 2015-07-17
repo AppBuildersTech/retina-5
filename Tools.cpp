@@ -42,6 +42,7 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
     for (int i = 0; i < h_sensor_hitNums[sensorId]; ++i) 
     {
       int hitId = h_sensor_hitStarts[sensorId] + i;
+      //std::cerr << "hh" <<  h_hit_IDs[hitId] << std::endl;
       assert(hitId >= 0 && hitId < h_no_hits );
       parsedHits.emplace_back(
         (h_hit_Xs[hitId] - minX) / (maxX - minX),
@@ -86,15 +87,21 @@ void printSolution(
   std::map<uint32_t, Hit> hitMap;
   for (const Hit& hit: hits) {
     hitMap[hit.id] = hit;
+    //std::cerr  << hit.id << std::endl;
     assert(hitMap[hit.id].sensorId == hit.sensorId);
   }
+  int id = 0;
   for (size_t trackId = 0; trackId < tracks.size(); ++trackId) 
   {
     const Track& track = tracks[trackId];
-    stream << "Track #" << trackId << ", length " << track.hitsNum << std::endl;
-    for(int i = 0; i < track.hitsNum; ++i)
+    if (track.hitsNum != 0)
     {
-      printHit(hitMap[track.hits[i]], stream);
+      stream << "Track #" << id++ << ", length " << track.hitsNum << std::endl;
+      for (int i = track.hitsNum - 1; i >= 0; --i)
+      {
+        printHit(hitMap[track.hits[i]], stream);
+      }
+      stream << std::endl;
     }
   }
 

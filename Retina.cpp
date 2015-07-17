@@ -36,13 +36,15 @@ std::vector<TrackPure> restoreTracks(
     std::vector<int> neighbours = generateNeighboursIndexes(indexes, dimensions);
     int currentIndex = multiIndexToIndex(indexes, dimensions);
     bool isLocalMaximum = true;
-    for (int neighbour : neighbours)
+    //std::cerr << responce[currentIndex] << std::endl;
+    isLocalMaximum = responce[currentIndex] > 2600;
+    /*for (int neighbour : neighbours)
     {
       if (responce[neighbour] > responce[currentIndex])
       {
         isLocalMaximum = false;
       }
-    }
+    }*/
     if (responce[currentIndex] > 1e-9 && isLocalMaximum)
     {
       TrackPure answer = grid[currentIndex] * responce[currentIndex];
@@ -99,7 +101,7 @@ std::vector<Track> findHits(
     Track extended;
     for (const auto& pair: sensorsBest)
     {
-      if (getDistance(track, pair.second) < 0.005)
+      if (getDistance(track, pair.second) < HIT_THRESHOLD)
       {
         extended.addHit(pair.second.id);
       }
@@ -135,6 +137,15 @@ int cpuRetinaInvocation(
     const std::vector<Hit> hits = parseHits(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
     const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
     const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
+//    for (const TrackPure& track: restored)
+//    {
+//      std::cout 
+//        << "x0 " << track.xOnZ0 
+//        << " y0 " << track.yOnZ0 
+//        << " dx " << track.dxOverDz 
+//        << " dy " << track.dyOverDz << std::endl; 
+//    }
+    //std::cerr << restored.size() << std::endl;
     const std::vector<Track> tracksWithHits = findHits(restored, hits);
     putTracksInOutputFormat(tracksWithHits, output[i]);
     printSolution(tracksWithHits, hits, DEBUG);
