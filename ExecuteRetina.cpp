@@ -1,11 +1,35 @@
+#include <iostream>
+
 #include "ExecuteRetina.h"
 #include "Retina.h"
-#include "Logger.h"
+#include "Tools.h"
 
 
+/**
+ * Common entrypoint for Gaudi and non-Gaudi
+ * @param input  
+ * @param output 
+ */
+int cpuRetinaInvocation(
+   const std::vector<const std::vector<uint8_t>* >  & input,
+  std::vector<std::vector<uint8_t> > & output
+) {
+  output.resize(input.size());
+  for (size_t i = 0; i < input.size(); ++i)
+  {
+    const EventInfo event = parseEvent(
+      const_cast<const uint8_t*>(input[i]->data()),
+      input[i]->size()
+    );    
+    std::vector<Track> tracks = algorithm(event);
+    output[i] = putTracksInOutputFormat(event.hits, tracks);
+  }
+  return 0;
+}
 int independent_execute(
     const std::vector<std::vector<uint8_t> > & input,
-    std::vector<std::vector<uint8_t> > & output) {
+    std::vector<std::vector<uint8_t> > & output
+) {
 
   std::vector<const std::vector<uint8_t>* > converted_input;
   converted_input.resize(input.size());
@@ -14,25 +38,11 @@ int independent_execute(
     converted_input[i] = &(input[i]);
   }
 
-  std::cout << std::fixed << std::setprecision(2);
-  logger::ll.verbosityLevel = 3;
-
   return cpuRetinaInvocation(converted_input, output);
 }
 
 void independent_post_execute(const std::vector<std::vector<uint8_t> > & output) {
-    DEBUG << "post_execute invoked" << std::endl;
+    std::cout << "post_execute invoked" << std::endl;
     for (size_t i = 0; i < output.size(); ++i)
-      DEBUG << "Size of output[" <<  i << "]: " << output[i].size() << " B" << std::endl;
+      std::cout << "Size of output[" <<  i << "]: " << output[i].size() << " B" << std::endl;
 }
-
-int retina(
-    const std::vector<const std::vector<uint8_t>* > & input,
-    std::vector<std::vector<uint8_t> > & output) {
-
-  // Silent execution
-  std::cout << std::fixed << std::setprecision(2);
-  logger::ll.verbosityLevel = 3;
-  return cpuRetinaInvocation(input, output);
-}
-

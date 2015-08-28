@@ -2,72 +2,41 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <set>
+#include <cstdlib>
+#include <fstream> 
 
+#include "optimizations/GridOptimization.h"
+#include "optimizations/Grid.h"
 #include "Retina.h"
-#include "Grid.h"
 #include "Physics.h"
-#include "Tools.h"
-#include "Logger.h"
 
-TrackPure generateTrackFromIndex(
-  const std::vector<int>& multiIndex,
-  const std::vector<Dimension>& dim
-)
-{
-  return TrackPure(
-    dim[0].getGridBoarder(multiIndex[0]),
-    dim[1].getGridBoarder(multiIndex[1]),
-    dim[2].getGridBoarder(multiIndex[2]),
-    dim[3].getGridBoarder(multiIndex[3])
-  );
-}
-
-std::vector<TrackPure> restoreTracks(
-  const std::vector<Dimension>& dimensions,
-  const std::vector<TrackPure>& grid,
-  const std::vector<double>& responces
-)
-{
-  int gridSizeNoBoarders = calculateGridSize(dimensions, 1);
-  std::vector<int> indexes(dimensions.size(), 1);
-  std::vector<TrackPure> restored;
-  const double threshold = getQuatile(responces, TRACK_THRESHOLD);
-  for (int i = 0; i < gridSizeNoBoarders; ++i)
-  {
-    std::vector<int> neighbours = generateNeighboursIndexes(indexes, dimensions);
-    int currentIndex = multiIndexToIndex(indexes, dimensions);
-    if (responces[currentIndex] > threshold)
-    {
-      TrackPure answer = grid[currentIndex] * responces[currentIndex];
-      double sum_responce = responces[currentIndex];
-      for (int neighbour : neighbours)
-      {
-        answer = answer + grid[neighbour] * responces[neighbour];
-        sum_responce += responces[neighbour];
-      }
-      restored.push_back(answer * (1.0 / sum_responce));      
-    }
-    generateNextMultiIndex(indexes, dimensions, 1);
-  }
-  return restored;
-}
-
-std::vector<double> calculateResponses(
-  const std::vector<TrackPure>& grid,
+std::vector<std::pair<double, Hit> > findHitsOnSensor(  
   const std::vector<Hit>& hits,
-  double sharpness
+  const TrackPure& track,
+  const std::function<double(TrackPure,Hit)> distance
 )
 {
-  std::vector<double> responces(grid.size());
-  for (unsigned int i = 0; i < grid.size(); ++i) 
+  std::vector<std::pair<double, Hit> > distances;
+  std::map<uint32_t, Hit> sensorsBest;
+
+  for (size_t i = 0; i < hits.size(); ++i)
   {
-    auto& track = grid[i];
-    for (const Hit& hit : hits)
     {
-      responces[i] += exp(-getDistance(track, hit) / sharpness);
+      const Hit& hit = hits[i];
+      if (!sensorsBest.count(hit.sensorId) ||
+          (distance(track, sensorsBest[hit.sensorId]) > 
+          distance(track, hit)))
+      {
+        sensorsBest[hit.sensorId] = hit;
+      }
     }
   }
-  return responces;
+  for (const auto& pair: sensorsBest)
+  {
+    distances.emplace_back(getDistance(track, pair.second), pair.second);
+  }
+  return distances;
 }
 
 std::vector<Track> findHits(
@@ -77,59 +46,102 @@ std::vector<Track> findHits(
 {
   std::vector<Track> extendedTracks;
   extendedTracks.reserve(tracks.size());
+  std::set<std::vector<uint32_t> > tracksSet;
+  std::vector<bool> used(hits.size(), false);
+  int cnt = 0;
   for (const TrackPure& track: tracks)
   {
-    std::map<uint32_t, Hit> sensorsBest;
-    for (const Hit& hit: hits) 
+    if (++cnt % 1000 == 0)
     {
-      if (!sensorsBest.count(hit.sensorId) ||
-          getDistance(track, sensorsBest[hit.sensorId]) > 
-          getDistance(track, hit))
-      {
-        sensorsBest[hit.sensorId] = hit;
-      }
+      std::cerr << cnt << " tracks proceed" << std::endl;
     }
+    std::vector<std::pair<double, Hit> > distances = findHitsOnSensor(hits, track, getDistance) ;
     Track extended;
-    for (const auto& pair: sensorsBest)
-    {
-      if (getDistance(track, pair.second) < HIT_THRESHOLD)
+    std::sort(distances.begin(), distances.end(), 
+      [](const std::pair<double, Hit>& a, const std::pair<double, Hit>& b) -> bool
       {
-        extended.addHit(pair.second.id);
+        return a.first < b.first;
+      }
+    );
+    {
+      double zStart = distances[0].second.z;
+      extended.addHit(distances[0].second.id);
+      for (size_t i = 1; i < 3; /*distances.size()*/ i++)
+      {
+        if (isFit(track, distances[i].second, zStart))
+        {
+          extended.addHit(distances[i].second.id);
+        }
       }
     }
-    extendedTracks.push_back(extended);
+    if (extended.hitsNum > 2)
+    {
+      /*for (size_t i = 0; i < extended.hitsNum; ++i)
+      {
+        used[extended.hits[i]] = true;
+      }*/
+      extendedTracks.push_back(extended);
+    }
   }
+        
   return extendedTracks;
 }
 
-/**
- * Common entrypoint for Gaudi and non-Gaudi
- * @param input  
- * @param output 
- */
-int cpuRetinaInvocation(
-    const std::vector<const std::vector<uint8_t>* > & input,
-    std::vector<std::vector<uint8_t> > & output
+void outputBest(
+  const std::vector<TrackPure>& tracks,
+  const std::vector<Hit>& hits,
+  const std::function<double(TrackPure,Hit)> distance,
+  std::string name
 )
 {
-  const std::vector<Dimension> dimensions =
-    {
-      Dimension(-1, 2, GRID_SIZE_X_ON_Z0),
-      Dimension(-1, 2, GRID_SIZE_Y_ON_Z0),
-      Dimension(-2, 2, GRID_SIZE_DX_OVER_DZ),
-      Dimension(-2, 2, GRID_SIZE_DY_OVER_DZ)
-    };
-  const std::vector<TrackPure> grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
- 
-  output.resize(input.size());
-  for (size_t i = 0; i < input.size(); ++i)
+  std::ofstream myfile;
+  myfile.open (name);
+  for (const TrackPure& track: tracks)
   {
-    const std::vector<Hit> hits = parseHits(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
-    const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
-    const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
-    const std::vector<Track> tracksWithHits = findHits(restored, hits);
-    putTracksInOutputFormat(tracksWithHits, output[i]);
-    printSolution(tracksWithHits, hits, DEBUG);
+    auto bst = findHitsOnSensor(hits, track, distance);
+    for (auto p: bst)
+    {
+      myfile << p.second.id << " ";
+    }
+    myfile << std::endl;
   }
-  return 0;
+  myfile.close();
+}
+
+/* Join tracks
+    for (const TrackPure& dx : restoredDx)
+    {
+      std::vector<std::pair<double, Hit> > xHits = findHitsOnSensor(hits, dx, getDistance) ;
+      for (const TrackPure& dy: restoredDy)
+      {
+        std::vector<std::pair<double, Hit> > yHits = findHitsOnSensor(hits, dx, getDistance) ;
+        int intersection = 0;
+
+        for (int j = 0; j < xHits.size(); j++)
+        {
+          if (xHits[j].first + yHits[j].first < PARAM_TOLERANCE && xHits[j].second.id == yHits[j].second.id)
+          {
+            intersection++;
+          }
+        }
+        if (intersection > 2)
+        {
+          tracks.push_back(dx + dy);
+        }
+      }
+    }
+*/
+std::vector<Track> algorithm(const EventInfo& event)
+{
+  const std::vector<std::vector<double> > dim = {
+    generateUniformDimension(-1, 1, 20),
+    generateUniformDimension(-1, 1, 20),
+    generateUniformDimension(-0.3, 0.3, 20),
+    generateUniformDimension(-1, 1, 20)
+  };
+  const std::vector<Hit>& hits = event.hits;
+  //auto answer = findHits;
+  //output[i] = answer;
+  //printSolution(tracksWithHits, hits, DEBUG);
+  return std::vector<Track>();
 }

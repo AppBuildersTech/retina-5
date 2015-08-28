@@ -6,10 +6,9 @@
 #include <iomanip>
 #include <cassert>
 
-std::vector<Hit> parseHits(const uint8_t * input, size_t size)
+EventInfo parseEvent(const uint8_t * input, size_t size)
 {
   const uint8_t * end = input + size;
-
   int h_no_sensors       = *((int32_t*)input); input += sizeof(int32_t);
   int h_no_hits          = *((int32_t*)input); input += sizeof(int32_t);
   int* h_sensor_Zs        = ((int32_t*)input); input += sizeof(int32_t) * h_no_sensors;
@@ -22,46 +21,84 @@ std::vector<Hit> parseHits(const uint8_t * input, size_t size)
 
   if (input != end)
     throw std::runtime_error("failed to deserialize event"); 
-  
-  double minX = *std::min_element(h_hit_Xs, h_hit_Xs + h_no_hits);
-  double minY = *std::min_element(h_hit_Ys, h_hit_Ys + h_no_hits);
-  double minZ = *std::min_element(h_hit_Zs, h_hit_Zs + h_no_hits);
-  double maxX = *std::max_element(h_hit_Xs, h_hit_Xs + h_no_hits);
-  double maxY = *std::max_element(h_hit_Ys, h_hit_Ys + h_no_hits);
-  double maxZ = *std::max_element(h_hit_Zs, h_hit_Zs + h_no_hits);
 
-  std::vector<Hit> parsedHits;
-  parsedHits.reserve(h_no_hits);
-  for (uint32_t sensorId =  0; sensorId < h_no_sensors; ++sensorId)
+  EventInfo event;
+  
+  event.minX = *std::min_element(h_hit_Xs, h_hit_Xs + h_no_hits);
+  event.minY = *std::min_element(h_hit_Ys, h_hit_Ys + h_no_hits);
+  event.minZ = *std::min_element(h_hit_Zs, h_hit_Zs + h_no_hits);
+  event.maxX = *std::max_element(h_hit_Xs, h_hit_Xs + h_no_hits);
+  event.maxY = *std::max_element(h_hit_Ys, h_hit_Ys + h_no_hits);
+  event.maxZ = *std::max_element(h_hit_Zs, h_hit_Zs + h_no_hits);
+  
   {
-    for (int i = 0; i < h_sensor_hitNums[sensorId]; ++i) 
+    std::vector<Hit> parsedHits;
+    parsedHits.reserve(h_no_hits);
+    int count = 0;
+    for (uint32_t sensorId =  0; sensorId < h_no_sensors; ++sensorId)
     {
-      int hitId = h_sensor_hitStarts[sensorId] + i;
-      assert(hitId >= 0 && hitId < h_no_hits );
-      parsedHits.emplace_back(
-        (h_hit_Xs[hitId] - minX) / (maxX - minX),
-        (h_hit_Ys[hitId] - minY) / (maxY - minY),
-        (h_hit_Zs[hitId] - minZ) / (maxZ - minZ),
-        h_hit_IDs[hitId],
-        sensorId
-      );
+      for (int i = 0; i < h_sensor_hitNums[sensorId]; ++i) 
+      {
+        int hitId = h_sensor_hitStarts[sensorId] + i;
+        assert(hitId >= 0 && hitId < h_no_hits );
+        parsedHits.emplace_back(
+          h_hit_Xs[hitId],
+          h_hit_Ys[hitId],
+          h_hit_Zs[hitId],
+          //h_hit_IDs[hitId],
+          count++,
+          sensorId
+        );
+      }
     }
+    event.hits = parsedHits;
   }
-  return parsedHits;
+  return event;
 }
 
-void putTracksInOutputFormat(
-  const std::vector<Track>& tracks,
-  std::vector<uint8_t>& output
+std::vector<uint8_t> putTracksInOutputFormat(
+  const std::vector<Hit>& hits,
+  const std::vector<Track>& tracks
 )
 {
-  output = std::vector<uint8_t>(tracks.size() * sizeof(Track));
+  std::map<int, int> remap;
+  for (int i = 0; i < hits.size(); i++)
+  {
+    remap[hits[i].id] = i;
+  }
+  std::vector<uint8_t> output(tracks.size() * sizeof(Track));
   Track * outputPtr = (Track*)&output[0];
-  for (size_t i = 0; i != tracks.size(); ++i)
-    outputPtr[i] = tracks[i];
+  for (int j = 0; j < tracks.size(); j++)
+  {
+    /*for (int i = 0; i < tracks[j].hitsNum; i++)
+    {
+      auto hit = hits[tracks[j].hits[i]];
+      std::cerr << "x: " << ((hit.x) * (_maxX - _minX) + _minX)
+        << ", y: " << ((hit.y) * (_maxY - _minY) + _minY)
+        << "z: " << ((hit.z) * (_maxZ - _minZ) + _minZ) << std::endl;
+    }
+     */
+    for (int i = 0; i < tracks[j].hitsNum; i++)
+    {
+      auto a = hits[tracks[j].hits[i]];
+      //fprintf(stderr, "[%f,%f,%f,%d],\n", a.x, a.y, a.z, j);      
+    }
+    //std::cerr << std::endl;
+     
+  }
+  for (size_t i = 0; i != tracks.size(); ++i) 
+  {
+    Track copy = tracks[i];
+    /*for (int j = 0; j < copy.hitsNum; j++)
+    {
+      copy.hits[j] = remap[copy.hits[j]];
+    }*/
+    outputPtr[i] = copy;
+  }
+  return output;
 }
 
-void printHit(const Hit& hit, std::ostream& stream) 
+/*void printHit(const Hit& hit, std::ostream& stream) 
 {
   stream << " " << std::setw(8) << hit.id 
     << " module " << std::setw(2) << hit.sensorId
@@ -100,7 +137,7 @@ void printSolution(
 
   stream << std::endl;
 }
-
+*/
 double getQuatile(std::vector<double> data, double ratio)
 {
   std::sort(data.begin(), data.end());

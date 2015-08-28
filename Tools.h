@@ -1,15 +1,15 @@
 #pragma once
 
+#include "Physics.h"
+
 #include <vector>
 #include <cstdint>
 
-#include "Physics.h"
+EventInfo parseEvent(const uint8_t * input, size_t size);
 
-std::vector<Hit> parseHits(const uint8_t * input, size_t size);
-
-void putTracksInOutputFormat(
-  const std::vector<Track>& tracks,
-  std::vector<uint8_t>& output
+std::vector<uint8_t> putTracksInOutputFormat(
+  const std::vector<Hit>& hits,
+  const std::vector<Track>& tracks
 );
 
 void printSolution(

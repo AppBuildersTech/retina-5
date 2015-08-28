@@ -11,20 +11,19 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20, code=sm_20)
 
 set (HEADERS 
 	Retina.h
-	FileStdLogger.h
-	Grid.h
+	optimizations/Grid.h
 	Physics.h
         ExecuteRetina.h
         Tools.h
+	optimizations/GridOptimization.h
 )
  
 set (SOURCES 
 	Retina.cpp
 	IndependentEntrypoint.cpp
-	Logger.cpp
 	Physics.cpp
         ExecuteRetina.cpp
-        Grid.cpp
+        optimizations/Grid.cpp
         Tools.cpp
 )
 
