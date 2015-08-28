@@ -10,20 +10,21 @@ FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20, code=sm_20)
 
 set (HEADERS 
-	Retina.h
+	algorithms/Retina.h
 	optimizations/Grid.h
-	Physics.h
+	algorithms/Physics.h
+	optimizations/GridOptimization.h
+        Data.h
         ExecuteRetina.h
         Tools.h
-	optimizations/GridOptimization.h
 )
  
 set (SOURCES 
-	Retina.cpp
-	IndependentEntrypoint.cpp
-	Physics.cpp
-        ExecuteRetina.cpp
+	algorithms/Retina.cpp
+	algorithms/Physics.cpp
         optimizations/Grid.cpp
+	IndependentEntrypoint.cpp
+        ExecuteRetina.cpp
         Tools.cpp
 )
 

@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <fstream> 
 
-#include "optimizations/GridOptimization.h"
-#include "optimizations/Grid.h"
+#include "../optimizations/Grid.h"
+#include "../optimizations/GridOptimization.h"
 #include "Retina.h"
 #include "Physics.h"
 
@@ -87,27 +87,6 @@ std::vector<Track> findHits(
   return extendedTracks;
 }
 
-void outputBest(
-  const std::vector<TrackPure>& tracks,
-  const std::vector<Hit>& hits,
-  const std::function<double(TrackPure,Hit)> distance,
-  std::string name
-)
-{
-  std::ofstream myfile;
-  myfile.open (name);
-  for (const TrackPure& track: tracks)
-  {
-    auto bst = findHitsOnSensor(hits, track, distance);
-    for (auto p: bst)
-    {
-      myfile << p.second.id << " ";
-    }
-    myfile << std::endl;
-  }
-  myfile.close();
-}
-
 /* Join tracks
     for (const TrackPure& dx : restoredDx)
     {
@@ -131,17 +110,29 @@ void outputBest(
       }
     }
 */
+TrackPure trackPureGenerator(const std::vector<double>& vector) {
+  return TrackPure(vector[0], vector[1], vector[2], vector[3]);
+}
 std::vector<Track> algorithm(const EventInfo& event)
 {
   const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 20),
-    generateUniformDimension(-1, 1, 20),
-    generateUniformDimension(-0.3, 0.3, 20),
-    generateUniformDimension(-1, 1, 20)
+    generateUniformDimension(-1, 1, 10),
+    generateUniformDimension(-1, 1, 10),
+    generateUniformDimension(-0.3, 0.3, 10),
+    generateUniformDimension(-0.3, 0.3, 10)
   };
   const std::vector<Hit>& hits = event.hits;
-  //auto answer = findHits;
-  //output[i] = answer;
-  //printSolution(tracksWithHits, hits, DEBUG);
-  return std::vector<Track>();
+  Grid<TrackPure> grid(dim, trackPureGenerator);
+  auto tracks = GridOptimization<TrackPure>(grid).findMaximums(
+    [&](TrackPure track) -> double
+    {
+      double responce = 0;
+      for (const Hit& hit : hits)
+      {
+        responce += exp(-getDistance(track, hit) / RETINA_SHARPNESS_COEFFICIENT);
+      }
+      return responce;
+    }
+  );
+  return findHits(tracks, hits);
 }

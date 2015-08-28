@@ -7,56 +7,64 @@
 
 #pragma once
 #include "Grid.h"
+#include "IOptimization.h"
 
 template<class Arg>
-std::vector<Arg> restoreTracks(
-  const Grid<Arg>& grid,
-  const std::vector<double>& values
-)
+class GridOptimization : IOptimization<Arg>
 {
-  std::vector<Arg> maxims;
-  
-  for (int i = 0; i < grid.size(); ++i)
+public:
+  GridOptimization(const Grid<Arg>& grid) : grid(grid)
   {
-    std::vector<int> neighbours = grid.getNeighbours(i);
-    if (neighbours.size() != 2 * grid.dim())
+  }
+  
+  std::vector<Arg> findMaximums(
+    const std::function<double(Arg)> function
+  )
+  {
+    std::vector<double> values;
+    values.reserve(grid.size());
+    for (size_t i = 0; i < grid.size(); ++i)
     {
-      continue;
+      values.push_back(function(grid.getPoint(i)));
     }
-    bool isLocalMaximum = true;
-    for (int neighbour : neighbours)
+    return restoreMaxims(values);  
+  }
+  
+private:
+  const Grid<Arg> grid;
+  std::vector<Arg> restoreMaxims(
+    const std::vector<double>& values
+  )
+  {
+    std::vector<Arg> maxims;
+
+    for (int i = 0; i < grid.size(); ++i)
     {
-      if (values[neighbour] > values[i] + 1e-8)
+      std::vector<int> neighbours = grid.getNeighbours(i);
+      if (neighbours.size() != 2 * grid.dim())
       {
-        isLocalMaximum = false;
+        continue;
       }
-    }
-    if (isLocalMaximum && values[i] > 1e-5)
-    {
-      Arg answer = grid.getPoint(i) * values[i];
-      double sum_responce = values[i];
+      bool isLocalMaximum = true;
       for (int neighbour : neighbours)
       {
-        answer = answer + grid.getPoint(neighbour) * values[neighbour];
-        sum_responce += values[neighbour];
+        if (values[neighbour] > values[i] + 1e-8)
+        {
+          isLocalMaximum = false;
+        }
       }
-      maxims.push_back(answer * (1.0 / sum_responce));      
+      if (isLocalMaximum && values[i] > 1e-5)
+      {
+        Arg answer = grid.getPoint(i) * values[i];
+        double sum_responce = values[i];
+        for (int neighbour : neighbours)
+        {
+          answer = answer + grid.getPoint(neighbour) * values[neighbour];
+          sum_responce += values[neighbour];
+        }
+        maxims.push_back(answer * (1.0 / sum_responce));      
+      }
     }
+    return maxims;
   }
-  return maxims;
-}
-
-template<class Arg>
-std::vector<Arg> findMaximums(
-  const Grid<Arg>& grid,
-  const std::function<double(Arg)> function
-)
-{
-  std::vector<double> values;
-  values.reserve(grid.size());
-  for (size_t i = 0; i < grid.size(); ++i)
-  {
-    values.push_back(function(grid.getPoint(i)));
-  }
-  return restoreTracks(grid, values);  
-}
+};

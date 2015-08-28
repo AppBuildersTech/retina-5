@@ -23,17 +23,17 @@ public:
     }
     size_ = mul;
   }
-  size_t size()
+  size_t size() const
   {
     return size_;
   }
   
-  size_t dim()
+  size_t dim() const 
   {
     return dimensions.size();
   }
   
-  std::vector<int> getNeighbours(int index)
+  std::vector<int> getNeighbours(int index) const 
   {
     std::vector<int> neighbours;
     std::vector<int> multiIndex = indexToMultiIndex(index);
@@ -45,7 +45,7 @@ public:
         multiIndexCopy[i] = multiIndex[i] + dx;
         if (multiIndexCopy[i] >= 0 && multiIndex[i] < dimensions[i].size())
         {
-          neighbours.push_back(multiIndexToIndex(multiIndexCopy, dim));
+          neighbours.push_back(multiIndexToIndex(multiIndexCopy));
         }
       }
       multiIndexCopy[i] = multiIndex[i];
@@ -53,7 +53,7 @@ public:
     return neighbours;
   }
   
-  T getPoint(int index)
+  T getPoint(int index) const
   {
     std::vector<int> multiIndex = indexToMultiIndex(index);
     std::vector<double> params(dimensions.size());
@@ -67,11 +67,10 @@ public:
 private:
   const std::vector<std::vector<double> > dimensions;
   const std::function<T(std::vector<double>)> generator;
-  const size_t size_;
+  size_t size_;
   int multiIndexToIndex(
-    const std::vector<int>& multiIndex, 
-    const std::vector<std::vector<double> >& dimensions
-  )
+    const std::vector<int>& multiIndex 
+  ) const 
   {
     int multiplier = 1;
     int index = 0;
@@ -83,7 +82,7 @@ private:
     return index;
   }
 
-  std::vector<int> indexToMultiIndex(int index)
+  std::vector<int> indexToMultiIndex(int index) const
   {
     std::vector<int> multiIndex(dimensions.size());
     for (size_t i = 0; i < dimensions.size(); ++i)

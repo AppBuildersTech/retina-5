@@ -1,8 +1,10 @@
 #include "Physics.h"
 
+
 #include <iostream>
 #include <limits>
 #include <cmath>
+
 TrackPure operator*(const TrackPure& one, const double alpha)
 {
   return TrackPure(
@@ -50,23 +52,6 @@ double getDistanceDy(const TrackPure& track, const Hit& hit) noexcept
 {
   return square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
 }
-
-/*std::vector<std::vector<double> > generateDimensions(const EventInfo& event)
-{
-  return std::vector<std::vector<double> > {
-        generateUniformDimension(-1, 1, GRID_SIZE_X_ON_Z0),
-        generateUniformDimension(-1, 1, GRID_SIZE_Y_ON_Z0),
-        generateUniformDimension(-0.3, 0.3, GRID_SIZE_DX_OVER_DZ),
-        generateUniformDimension(-0.3, 0.3, GRID_SIZE_DY_OVER_DZ)
-  };
-  return std::vector<std::vector<double> > {
-        generateGaussDimension(0, 12, GRID_SIZE_X_ON_Z0),
-        generateGaussDimension(0, 12, GRID_SIZE_Y_ON_Z0),
-        generateGaussDimension(0, 0.1, GRID_SIZE_DX_OVER_DZ),
-        generateGaussDimension(0, 0.1, GRID_SIZE_DY_OVER_DZ)
-  };
-  
-}*/
 
 bool isFit(const TrackPure& track, const Hit& hit, double zStart) noexcept
 {

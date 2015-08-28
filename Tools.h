@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Physics.h"
+#include "Data.h"
 
 #include <vector>
-#include <cstdint>
+#include <cstddef>
 
 EventInfo parseEvent(const uint8_t * input, size_t size);
 
@@ -12,11 +12,11 @@ std::vector<uint8_t> putTracksInOutputFormat(
   const std::vector<Track>& tracks
 );
 
-void printSolution(
+/*void printSolution(
   const std::vector<Track>& tracks, 
   const std::vector<Hit>& hits,
   std::ostream& stream
-); 
+);*/ 
 
 double getQuatile(std::vector<double> data, double ratio);
 
