@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 
 #include "ExecuteRetina.h"
 #include "algorithms/Retina.h"
@@ -14,6 +15,9 @@ int cpuRetinaInvocation(
    const std::vector<const std::vector<uint8_t>* >  & input,
   std::vector<std::vector<uint8_t> > & output
 ) {
+  auto findTracks = std::bind(retinaFullTrackRestore, std::placeholders::_1, 1e-3);
+  auto findPoints = std::bind(findHits, std::placeholders::_1, std::placeholders::_2);
+
   output.resize(input.size());
   for (size_t i = 0; i < input.size(); ++i)
   {
@@ -21,7 +25,9 @@ int cpuRetinaInvocation(
       const_cast<const uint8_t*>(input[i]->data()),
       input[i]->size()
     );    
-    std::vector<Track> tracks = algorithm(event);
+    
+    auto pureTracks = findTracks(event);
+    auto tracks = findPoints(pureTracks, event);
     output[i] = putTracksInOutputFormat(event.hits, tracks);
   }
   return 0;

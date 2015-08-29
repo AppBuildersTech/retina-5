@@ -4,5 +4,12 @@
 #include <stdint.h>
 
 #include "../Data.h"
+#include "Physics.h"
 
-std::vector<Track> algorithm(const EventInfo& event);
+std::vector<TrackPure> retinaFullTrackRestore(const EventInfo& event, double sharpness);
+
+std::vector<Track> findHits(
+  const std::vector<TrackPure>& tracks,
+  const EventInfo& event
+);
+
