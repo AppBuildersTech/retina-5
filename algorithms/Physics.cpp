@@ -8,29 +8,46 @@
 TrackPure operator*(const TrackPure& one, const double alpha)
 {
   return TrackPure(
-      one.xOnZ0 * alpha,
-      one.yOnZ0 * alpha,
-      one.dxOverDz * alpha,
-      one.dyOverDz * alpha
+      one.x0 * alpha,
+      one.y0 * alpha,
+      one.dx * alpha,
+      one.dy * alpha
   );
 }
 
 TrackPure operator+(const TrackPure& one, const TrackPure& other) 
 {
   return TrackPure(
-    one.xOnZ0 + other.xOnZ0,
-    one.yOnZ0 + other.yOnZ0,
-    one.dxOverDz + other.dxOverDz,
-    one.dyOverDz + other.dyOverDz
+    one.x0 + other.x0,
+    one.y0 + other.y0,
+    one.dx + other.dx,
+    one.dy + other.dy
   );
 }
 TrackPure::TrackPure(const Hit& a, const Hit& b)
 {
-  dxOverDz = (b.x - a.x) / (b.z - a.z);
-  dyOverDz = (b.y - a.y) / (b.z - a.z);
-  xOnZ0 = a.x - a.z * dxOverDz;
-  yOnZ0 = a.y - a.z * dyOverDz;
+  dx = (b.x - a.x) / (b.z - a.z);
+  dy = (b.y - a.y) / (b.z - a.z);
+  x0 = a.x - a.z * dx;
+  y0 = a.y - a.z * dy;
 }
+
+TrackProjection operator*(const TrackProjection& one, const double alpha)
+{
+  return TrackProjection(
+      one.x0 * alpha,
+      one.dx * alpha
+  );
+}
+
+TrackProjection operator+(const TrackProjection& one, const TrackProjection& other) 
+{
+  return TrackProjection(
+    one.x0 + other.x0,
+    one.dx + other.dx
+  );
+}
+
 
 inline double square(double x)
 {
@@ -39,24 +56,24 @@ inline double square(double x)
 
 double getDistance(const TrackPure& track, const Hit& hit) noexcept
 {
-  return square(hit.x - track.xOnZ0 - track.dxOverDz * hit.z) +
-         square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
+  return square(hit.x - track.x0 - track.dx * hit.z) +
+         square(hit.y - track.y0 - track.dy * hit.z);
 }
 
-double getDistanceDx(const TrackPure& track, const Hit& hit) noexcept
+double getDistanceDx(const TrackProjection& track, const Hit& hit) noexcept
 {
-  return square(hit.x - track.xOnZ0 - track.dxOverDz * hit.z);
+  return square(hit.x - track.x0 - track.dx * hit.z);
 }
 
-double getDistanceDy(const TrackPure& track, const Hit& hit) noexcept
+double getDistanceDy(const TrackProjection& track, const Hit& hit) noexcept
 {
-  return square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
+  return square(hit.y - track.x0 - track.dx * hit.z);
 }
 
 bool isFit(const TrackPure& track, const Hit& hit, double zStart) noexcept
 {
-  double dx = fabs(hit.x - track.xOnZ0 - track.dxOverDz * hit.z);
-  double dy = fabs(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
+  double dx = fabs(hit.x - track.x0 - track.dx * hit.z);
+  double dy = fabs(hit.y - track.y0 - track.dy * hit.z);
   double scatterNum = dx * dx + dy * dy;
   double scatterNorm = 1 / (hit.z - zStart);
   double scatter = scatterNum * scatterNorm * scatterNorm;

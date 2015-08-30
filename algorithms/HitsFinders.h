@@ -65,7 +65,7 @@ std::vector<Track> findHits(
       extended.addHit(distances[0].second.id);
       for (size_t i = 1; i < 3; i++)
       {
-        if (isFit(track, distances[i].second, zStart))
+        //if (isFit(track, distances[i].second, zStart))
         {
           extended.addHit(distances[i].second.id);
         }

@@ -15,7 +15,8 @@ int cpuRetinaInvocation(
    const std::vector<const std::vector<uint8_t>* >  & input,
   std::vector<std::vector<uint8_t> > & output
 ) {
-  auto findTracks = std::bind(retinaFullTrackRestore, std::placeholders::_1, 1e-3);
+  //auto findTracks = std::bind(retinaFullTrackRestore, std::placeholders::_1, 1e-3);
+  auto findTracks = std::bind(retinaProjectionTrackRestore, std::placeholders::_1, 1e-3);
   auto findPoints = std::bind(findHits, std::placeholders::_1, std::placeholders::_2);
 
   output.resize(input.size());
