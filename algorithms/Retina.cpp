@@ -12,6 +12,8 @@
 #include "Physics.h"
 #include "HitsFinders.h"
 
+//#define USE_GPU 1
+
 TrackProjection trackProjectionGenerator(const std::vector<double>& vector) {
   return TrackProjection(vector[0], vector[1]);
 }
@@ -22,21 +24,26 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
 )
 {
   const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 500),
-    generateUniformDimension(-0.03, 0.03, 500)
+    generateUniformDimension(-1, 1, 200),
+    generateUniformDimension(-0.03, 0.03, 200)
   };
   Grid<TrackProjection> grid(dim, trackProjectionGenerator);
 
   auto restoredDx = GridOptimization<TrackProjection>(grid).findMaximums(
-    [&](TrackProjection track) -> double
+//#ifdef 1
+#if 0
+  [&](TrackProjection track) -> double
+  {
+    double responce = 0;
+    for (const Hit& hit : event.hits)
     {
-      double responce = 0;
-      for (const Hit& hit : event.hits)
-      {
-        responce += exp(-getDistanceDx(track, hit) / sharpness);
-      }
-      return responce;
+      responce += exp(-getDistanceDx(track, hit) / sharpness);
     }
+    return responce;
+  }
+#else
+    std::bind(getRetinaDx, std::placeholders::_1, event, sharpness)
+#endif
   );
   
   auto restoredDy = GridOptimization<TrackProjection>(grid).findMaximums(

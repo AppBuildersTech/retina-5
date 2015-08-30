@@ -29,6 +29,19 @@ public:
     }
     return restoreMaxims(values);  
   }
+
+  std::vector<Arg> findMaximums(
+    const std::function<std::vector<double>(const std::vector<Arg>&)> function
+  ) 
+  {
+    std::vector<Arg> vectorGrid(grid.size());
+    for (size_t i = 0; i < grid.size(); ++i)
+    {
+      vectorGrid[i] = grid.getPoint(i);
+    }
+    std::vector<double> values = function(vectorGrid);
+    return restoreMaxims(values);  
+  }
   
 private:
   const Grid<Arg> grid;

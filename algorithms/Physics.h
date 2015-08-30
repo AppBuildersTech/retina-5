@@ -33,6 +33,8 @@ struct TrackProjection
   TrackProjection(double dx, double x0) :
   dx(dx), x0(x0) {
   }
+  
+  TrackProjection() = default;
 
   double x0;
   double dx;
