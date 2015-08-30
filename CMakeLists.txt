@@ -17,6 +17,7 @@ set (HEADERS
         Data.h
         ExecuteRetina.h
         Tools.h
+	algorithms/GpuRetina.cuh
 )
  
 set (SOURCES 
@@ -28,4 +29,8 @@ set (SOURCES
         Tools.cpp
 )
 
-add_executable (${PROJECT} ${HEADERS} ${SOURCES})
+
+
+cuda_compile(GpuRetina_O algorithms/GpuRetina.cu)
+
+add_executable (${PROJECT} ${HEADERS} ${SOURCES} ${GpiRetina_O})

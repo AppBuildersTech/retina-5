@@ -8,6 +8,7 @@
 
 #include "../optimizations/Grid.h"
 #include "../optimizations/GridOptimization.h"
+#include "GpuRetina.cuh"
 #include "Retina.h"
 #include "Physics.h"
 #include "HitsFinders.h"
