@@ -48,6 +48,7 @@ struct Hit {
 struct EventInfo
 {
   std::vector<Hit> hits;
+  int32_t sensorNum;
   double minX, minY, minZ, maxX, maxY, maxZ;
 };
 

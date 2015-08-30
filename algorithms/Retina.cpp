@@ -22,8 +22,8 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
 )
 {
   const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 200),
-    generateUniformDimension(-0.03, 0.03, 200)
+    generateUniformDimension(-1, 1, 500),
+    generateUniformDimension(-0.03, 0.03, 500)
   };
   Grid<TrackProjection> grid(dim, trackProjectionGenerator);
 

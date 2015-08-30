@@ -15,20 +15,25 @@ std::vector<std::pair<double, Hit> > findBestHits(
 )
 {
   std::vector<std::pair<double, Hit> > distances;
-  std::map<uint32_t, Hit> sensorsBest;
-
+  std::vector<Hit> sensorsBest(event.sensorNum);
+  std::vector<double> currentMax(event.sensorNum);
+  std::vector<bool> init(event.sensorNum);
   for (const Hit& hit : event.hits)
   {
-    if (!sensorsBest.count(hit.sensorId) ||
-        (function(sensorsBest[hit.sensorId]) > 
-        function(hit)))
+    double value = function(hit);
+    if (!init[hit.sensorId] || (currentMax[hit.sensorId] > value) )
     {
       sensorsBest[hit.sensorId] = hit;
+      currentMax[hit.sensorId] = value;
+      init[hit.sensorId] = true;
     }
   }
-  for (const auto& pair: sensorsBest)
+  for (const Hit& hit: sensorsBest)
   {
-    distances.emplace_back(function(pair.second), pair.second);
+    if (init[hit.sensorId])
+    {
+      distances.emplace_back(function(hit), hit);
+    }
   }
   return distances;
 }

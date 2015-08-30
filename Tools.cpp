@@ -23,7 +23,7 @@ EventInfo parseEvent(const uint8_t * input, size_t size)
     throw std::runtime_error("failed to deserialize event"); 
 
   EventInfo event;
-  
+  event.sensorNum = h_no_sensors;
   event.minX = *std::min_element(h_hit_Xs, h_hit_Xs + h_no_hits);
   event.minY = *std::min_element(h_hit_Ys, h_hit_Ys + h_no_hits);
   event.minZ = *std::min_element(h_hit_Zs, h_hit_Zs + h_no_hits);
@@ -70,29 +70,14 @@ std::vector<uint8_t> putTracksInOutputFormat(
   Track * outputPtr = (Track*)&output[0];
   for (int j = 0; j < tracks.size(); j++)
   {
-    /*for (int i = 0; i < tracks[j].hitsNum; i++)
-    {
-      auto hit = hits[tracks[j].hits[i]];
-      std::cerr << "x: " << ((hit.x) * (_maxX - _minX) + _minX)
-        << ", y: " << ((hit.y) * (_maxY - _minY) + _minY)
-        << "z: " << ((hit.z) * (_maxZ - _minZ) + _minZ) << std::endl;
-    }
-     */
     for (int i = 0; i < tracks[j].hitsNum; i++)
     {
       auto a = hits[tracks[j].hits[i]];
-      //fprintf(stderr, "[%f,%f,%f,%d],\n", a.x, a.y, a.z, j);      
     }
-    //std::cerr << std::endl;
-     
   }
   for (size_t i = 0; i != tracks.size(); ++i) 
   {
     Track copy = tracks[i];
-    /*for (int j = 0; j < copy.hitsNum; j++)
-    {
-      copy.hits[j] = remap[copy.hits[j]];
-    }*/
     outputPtr[i] = copy;
   }
   return output;
