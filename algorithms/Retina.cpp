@@ -8,7 +8,8 @@
 
 #include "../optimizations/Grid.h"
 #include "../optimizations/GridOptimization.h"
-#include "GpuRetina.cuh"
+#include "../RetinaCore/Definitions.cuh"
+#include "../RetinaCore/GpuRetina.cuh"
 #include "Retina.h"
 #include "Physics.h"
 #include "HitsFinders.h"
@@ -43,7 +44,19 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     return responce;
   }
 #else
-    std::bind(getRetinaDx, std::placeholders::_1, event, sharpness)
+    [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
+    {
+      std::vector<double> values(tracks.size());
+      getRetinaDx(
+        tracks.data(),
+        tracks.size(),
+        event.hits.data(),
+        event.hits.size(),
+        sharpness,
+        values.data()
+      );
+      return values;
+    }
 #endif
   );
   
