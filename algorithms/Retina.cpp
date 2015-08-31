@@ -30,6 +30,15 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     generateUniformDimension(-0.03, 0.03, 200)
   };
   Grid<TrackProjection> grid(dim, trackProjectionGenerator);
+  std::vector<double> hitsX(event.hits.size());
+  std::vector<double> hitsY(event.hits.size());
+  std::vector<double> hitsZ(event.hits.size());
+  for (size_t i = 0; i < event.hits.size(); ++i)
+  {
+    hitsX[i] = event.hits[i].x;
+    hitsY[i] = event.hits[i].y;
+    hitsZ[i] = event.hits[i].z;
+  }
 
   auto restoredDx = GridOptimization<TrackProjection>(grid).findMaximums(
 //#ifdef 1
@@ -39,7 +48,7 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     double responce = 0;
     for (const Hit& hit : event.hits)
     {
-      responce += exp(-getDistanceDx(track, hit) / sharpness);
+      responce += exp(-getDistanceDx(track, hit) * sharpness);
     }
     return responce;
   }
@@ -47,10 +56,11 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
-      getRetinaDx(
+      getRetinaDxGpu(
         tracks.data(),
         tracks.size(),
-        event.hits.data(),
+        hitsX.data(),
+        hitsZ.data(),
         event.hits.size(),
         sharpness,
         values.data()
@@ -66,7 +76,7 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
       double responce = 0;
       for (const Hit& hit : event.hits)
       {
-        responce += exp(-getDistanceDy(track, hit) / sharpness);
+        responce += exp(-getDistanceDy(track, hit) * sharpness);
       }
       return responce;
     }
