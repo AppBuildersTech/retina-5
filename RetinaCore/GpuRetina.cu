@@ -24,13 +24,14 @@ __global__ void calculateRetina2d(
     sum += exp(-shift * shift * sharpness);
   }
   __shared__ double sdata[BLOCK_SIZE];
+  sdata[tid] = sum;
   for (unsigned int s = BLOCK_SIZE >> 1; s > 0; s >>= 1) 
   {
+    __syncthreads();
     if (tid < s) 
     {
       sdata[tid] += sdata[tid + s];
     }
-  __syncthreads();
   }
   if (tid == 0)
   {
@@ -70,7 +71,7 @@ void getRetinaDxGpu(
     sharpness, 
     valuesGpu
   );
-  cudaMemcpy( valuesGpu, values, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
+  cudaMemcpy( values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
 }
 
 
