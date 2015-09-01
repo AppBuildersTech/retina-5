@@ -14,7 +14,6 @@
 #include "Physics.h"
 #include "HitsFinders.h"
 
-//#define USE_GPU 1
 
 TrackProjection trackProjectionGenerator(const std::vector<double>& vector) {
   return TrackProjection(vector[0], vector[1]);
@@ -26,8 +25,8 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
 )
 {
   const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 10),
-    generateUniformDimension(-0.03, 0.03, 10)
+    generateUniformDimension(-1, 1, 1000),
+    generateUniformDimension(-0.03, 0.03, 1000)
   };
   Grid<TrackProjection> grid(dim, trackProjectionGenerator);
   std::vector<double> hitsX(event.hits.size());
@@ -41,8 +40,9 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
   }
 
   auto restoredDx = GridOptimization<TrackProjection>(grid).findMaximums(
-//#ifdef 1
-#if 0
+//#define USE_CPU
+
+#ifdef USE_CPU
   [&](TrackProjection track) -> double
   {
     double responce = 0;
@@ -70,7 +70,7 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
 #endif
   );
   auto restoredDy = GridOptimization<TrackProjection>(grid).findMaximums(
-#if 0
+#ifdef USE_CPU
   [&](TrackProjection track) -> double
     {
       double responce = 0;
@@ -95,12 +95,12 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
       );
       for (size_t i = 0; i < values.size(); ++i)
       {
-        std::cerr << values[i] << std::endl;
+        //std::cerr << values[i] << std::endl;
       }
       return values;
     }
-  );
 #endif
+  );
   std::vector<TrackPure> tracks;
   for (const TrackProjection& dx : restoredDx)
   {
