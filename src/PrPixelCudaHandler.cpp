@@ -1,5 +1,5 @@
 #include "PrPixelCudaHandler.h"
-#include "Retina.h"
+#include "ExecuteRetina.h"
 
 #include <algorithm>
 #include <vector>

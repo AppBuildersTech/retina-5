@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <vector>
 
+int cpuRetinaInvocation(
+   const std::vector<const std::vector<uint8_t>* >  & input,
+  std::vector<std::vector<uint8_t> > & output
+);
 
 int independent_execute(
     const std::vector<std::vector<uint8_t> > & input,
