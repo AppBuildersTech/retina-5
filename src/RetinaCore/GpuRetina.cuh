@@ -6,7 +6,7 @@
  */
 #pragma once
 #include "Definitions.cuh"
-void getRetinaDxGpu(
+void getRetina2dGpu(
   const TrackProjection* tracks, 
   int tracksNum, 
   const double* hitsX,
@@ -16,18 +16,8 @@ void getRetinaDxGpu(
   double *values
 );
 
-void getRetinaDxCpu(
-  const TrackProjection* tracks, 
-  int tracksNum, 
-  const double* hitsX,
-  const double* hitsZ,
-  int hitsNum, 
-  double sharpness,
-  double *values
-);
-
-void getRetinaDy(
-  const TrackProjection* tracks, 
+void getRetina3dGpu(
+  const TrackPure* tracks, 
   int tracksNum, 
   const Hit* hits,
   int hitsNum, 

@@ -48,7 +48,7 @@ T* allocAndFetch(const T* data, int size)
   return answer;
 }
 
-void getRetinaDxGpu(
+void getRetina2dGpu(
   const TrackProjection* tracks, 
   int tracksNum, 
   const double* hitsX,
@@ -57,12 +57,13 @@ void getRetinaDxGpu(
   double sharpness,
   double *values
 ) {
+  const int BLOCK_SIZE = 1 << 8;
   TrackProjection* tracksGpu = allocAndFetch(tracks, tracksNum);
   double* hitsXGpu = allocAndFetch(hitsX, hitsNum);
   double* histZGpu = allocAndFetch(hitsZ, hitsNum);
   double* valuesGpu = nullptr;
   cudaMalloc( (void**)&valuesGpu, sizeof(double) * tracksNum);
-  calculateRetina2d<128><<<tracksNum, 128>>>(
+  calculateRetina2d<BLOCK_SIZE><<<tracksNum, BLOCK_SIZE>>>(
     tracksGpu, 
     tracksNum, 
     hitsXGpu, 
@@ -74,58 +75,69 @@ void getRetinaDxGpu(
   cudaMemcpy( values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
 }
 
+template<int BLOCK_SIZE>
+__global__ void calculateRetina3d(
+  const TrackPure* tracks, 
+  int tracksNum, 
+  const Hit* hits,
+  int hitsNum, 
+  double sharpness,
+  double *values
+)
+{
+  int trackId = blockIdx.x;
+  unsigned int tid = threadIdx.x;
+  const double trackX0 = tracks[trackId].x0;
+  const double trackDx = tracks[trackId].dx;
+  const double trackY0 = tracks[trackId].y0;
+  const double trackDy = tracks[trackId].dy;
+  double sum = 0;
+  for (int hitId = tid; hitId < hitsNum; hitId += BLOCK_SIZE)
+  {
+    const double hitX = hits[hitId].x;
+    const double hitY = hits[hitId].y;
+    const double hitZ = hits[hitId].z;
+    const double shiftX = (hitX - trackX0 - hitZ * trackDx);
+    const double shiftY = (hitY - trackY0 - hitZ * trackDy);
+    
+    sum += exp(-(shiftX * shiftX + shiftY * shiftY) * sharpness);
+  }
+  __shared__ double sdata[BLOCK_SIZE];
+  sdata[tid] = sum;
+  for (unsigned int s = BLOCK_SIZE >> 1; s > 0; s >>= 1) 
+  {
+    __syncthreads();
+    if (tid < s) 
+    {
+      sdata[tid] += sdata[tid + s];
+    }
+  }
+  if (tid == 0)
+  {
+    values[trackId] = sdata[0];
+  }
+}
 
-void getRetinaDxCpu(
-  const TrackProjection* tracks, 
+void getRetina3dGpu(
+  const TrackPure* tracks, 
   int tracksNum, 
-  const Hit* hits,
+  const Hit* hitsX,
   int hitsNum, 
   double sharpness,
   double *values
 ) {
-  int trackId, hitId;
-  for (trackId = 0; trackId < tracksNum; ++trackId)
-  {
-    if (trackId % 1000 == 0)
-      printf("%d\n", trackId);
-    const double trackX0 = tracks[trackId].x0;
-    const double trackDx = tracks[trackId].dx;
-    double sum = 0;
-    for (hitId = 0; hitId < hitsNum; hitId++)
-    {
-      const double hitX = hits[hitId].x;
-      const double hitZ = hits[hitId].z;
-      const double shift = (hitX - trackX0 - hitZ * trackDx);
-      sum += exp(-shift * shift * sharpness);
-    }
-    values[trackId] = sum;
-  }
+  TrackPure* tracksGpu = allocAndFetch(tracks, tracksNum);
+  Hit* hitsGpu = allocAndFetch(hitsX, hitsNum);
+  double* valuesGpu = nullptr;
+  cudaMalloc( (void**)&valuesGpu, sizeof(double) * tracksNum);
+  calculateRetina3d<128><<<tracksNum, 128>>>(
+    tracksGpu, 
+    tracksNum, 
+    hitsGpu, 
+    hitsNum, 
+    sharpness, 
+    valuesGpu
+  );
+  cudaMemcpy( values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
 }
-/*
-void getRetinaDy(
-  const TrackProjection* tracks, 
-  int tracksNum, 
-  const Hit* hits,
-  int hitsNum, 
-  double sharpness,
-  double *values
-) {
-  int trackId, hitId;
-  for (trackId = 0; trackId < tracksNum; ++trackId)
-  {
-    if (trackId % 1000 == 0)
-      printf("%d\n", trackId);
-    const double trackX0 = track[hitId].x;
-    const double trackDx = track[hitId].dx;
-    double sum = 0;
-    for (hitId = 0; hitId < hitsNum; hitId++)
-    {
-      const double hitX = hits[hitId].y;
-      const double hitZ = hits[hitId].z;
-      const double shift = (hitX - trackX0 - hitZ * trackDx);
-      sum += exp(-shift * shift * sharpness);
-    }
-    values[trackId] = sum;
-  }
-}
-*/
+
