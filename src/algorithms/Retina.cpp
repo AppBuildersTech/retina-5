@@ -19,14 +19,10 @@ using namespace std::placeholders;
 
 std::vector<TrackPure> retinaProjectionTrackRestore(
   const EventInfo& event,
+  const IOptimization<TrackProjection>* optimization,
   double sharpness
 )
 {
-  const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 1000),
-    generateUniformDimension(-0.03, 0.03, 1000)
-  };
-  Grid<TrackProjection> grid(dim, trackProjectionGenerator);
   std::vector<double> hitsX(event.hits.size());
   std::vector<double> hitsY(event.hits.size());
   std::vector<double> hitsZ(event.hits.size());
@@ -37,7 +33,7 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     hitsZ[i] = event.hits[i].z;
   }
   std::vector<double> valueCp;
-  auto restoredDx = GridOptimization<TrackProjection>(grid).findMaximums(
+  auto restoredDx = optimization->findMaximums(
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
@@ -53,7 +49,7 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
       return values;
     }
   );
-  auto restoredDy = GridOptimization<TrackProjection>(grid).findMaximums(
+  auto restoredDy = optimization->findMaximums(
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());

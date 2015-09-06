@@ -10,6 +10,7 @@
 
 std::vector<TrackPure> retinaProjectionTrackRestore(
   const EventInfo& event,
+  const IOptimization<TrackProjection>* optimization,
   double sharpness
 );
 
