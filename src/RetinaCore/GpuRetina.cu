@@ -104,13 +104,15 @@ __global__ void calculateRetina3d(
   }
   __shared__ double sdata[BLOCK_SIZE];
   sdata[tid] = sum;
+  __syncthreads();
+
   for (unsigned int s = BLOCK_SIZE >> 1; s > 0; s >>= 1) 
   {
-    __syncthreads();
     if (tid < s) 
     {
       sdata[tid] += sdata[tid + s];
     }
+    __syncthreads();
   }
   if (tid == 0)
   {
@@ -126,11 +128,12 @@ void getRetina3dGpu(
   double sharpness,
   double *values
 ) {
+  const int BLOCK_SIZE = 1 << 7;
   TrackPure* tracksGpu = allocAndFetch(tracks, tracksNum);
   Hit* hitsGpu = allocAndFetch(hitsX, hitsNum);
   double* valuesGpu = nullptr;
   cudaMalloc( (void**)&valuesGpu, sizeof(double) * tracksNum);
-  calculateRetina3d<128><<<tracksNum, 128>>>(
+  calculateRetina3d<BLOCK_SIZE><<<tracksNum, BLOCK_SIZE>>>(
     tracksGpu, 
     tracksNum, 
     hitsGpu, 
