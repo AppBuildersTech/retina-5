@@ -27,7 +27,7 @@ cuda_add_library(${LIB_NAME}
   ${gpuacc_SRCS} 
 )
 
-set(PUBLIC_HEADERS "GpuRetina.cuh;Definition.cuh")
+set(PUBLIC_HEADERS "GpuRetina.cuh;CpuRetina.h;Definition.cuh")
 
 INSTALL(FILES ${PUBLIC_HEADERS} DESTINATION include)
 INSTALL(FILES "${CMAKE_BINARY_DIR}/src/lib${LIB_NAME}.a" DESTINATION lib)

@@ -9,5 +9,10 @@
 template<class Arg>
 class IOptimization
 {
-  virtual std::vector<Arg> findMaximums(const std::function<double(Arg)> function) = 0;
+  public:
+  virtual std::vector<Arg> findMaximums(const std::function<double(Arg)> function) const = 0;
+  virtual std::vector<Arg> findMaximums(
+    const std::function<std::vector<double>(const std::vector<Arg>&)> function
+  ) const = 0;
+
 };

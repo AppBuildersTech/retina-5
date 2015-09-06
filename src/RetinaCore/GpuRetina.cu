@@ -94,9 +94,9 @@ __global__ void calculateRetina3d(
   double sum = 0;
   for (int hitId = tid; hitId < hitsNum; hitId += BLOCK_SIZE)
   {
-    const double hitX = hits[hitId].x;
-    const double hitY = hits[hitId].y;
-    const double hitZ = hits[hitId].z;
+    const float hitX = hits[hitId].x;
+    const float hitY = hits[hitId].y;
+    const float hitZ = hits[hitId].z;
     const double shiftX = (hitX - trackX0 - hitZ * trackDx);
     const double shiftY = (hitY - trackY0 - hitZ * trackDy);
     

@@ -10,7 +10,7 @@
 #include "IOptimization.h"
 
 template<class Arg>
-class GridOptimization : IOptimization<Arg>
+class GridOptimization : public IOptimization<Arg>
 {
 public:
   GridOptimization(const Grid<Arg>& grid) : grid(grid)
@@ -19,7 +19,7 @@ public:
   
   std::vector<Arg> findMaximums(
     const std::function<double(Arg)> function
-  )
+  ) const
   {
     std::vector<double> values;
     values.reserve(grid.size());
@@ -32,7 +32,7 @@ public:
 
   std::vector<Arg> findMaximums(
     const std::function<std::vector<double>(const std::vector<Arg>&)> function
-  ) 
+  ) const
   {
     std::vector<Arg> vectorGrid(grid.size());
     for (size_t i = 0; i < grid.size(); ++i)
@@ -47,7 +47,7 @@ private:
   const Grid<Arg> grid;
   std::vector<Arg> restoreMaxims(
     const std::vector<double>& values
-  )
+  ) const
   {
     std::vector<Arg> maxims;
 

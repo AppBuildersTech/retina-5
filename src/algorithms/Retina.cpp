@@ -16,9 +16,6 @@
 #include "HitsFinders.h"
 
 using namespace std::placeholders;
-TrackProjection trackProjectionGenerator(const std::vector<double>& vector) {
-  return TrackProjection(vector[0], vector[1]);
-}
 
 std::vector<TrackPure> retinaProjectionTrackRestore(
   const EventInfo& event,
@@ -41,18 +38,6 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
   }
   std::vector<double> valueCp;
   auto restoredDx = GridOptimization<TrackProjection>(grid).findMaximums(
-//#define USE_CPU
-#ifdef USE_CPU
-  [&](TrackProjection track) -> double
-  {
-    double responce = 0;
-    for (const Hit& hit : event.hits)
-    {
-      responce += exp(-getDistanceDx(track, hit) * sharpness);
-    }
-    return responce;
-  }
-#else
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
@@ -65,38 +50,10 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
         sharpness,
         values.data()
       );
-      valueCp = values;
       return values;
     }
-#endif
   );
-/*#ifndef USE_CPU
-  for (size_t i = 0; i < grid.size(); ++i)
-  {
-    if ((fabs([&](TrackProjection track) -> double
-    {
-      double responce = 0;
-      for (const Hit& hit : event.hits)
-      {
-        responce += exp(-getDistanceDx(track, hit) * sharpness);
-      }
-      return responce;
-    }(grid.getPoint(i)) - valueCp[i]) > 1e-6)) 
-      std::cerr << i << std::endl;
-  }
-#endif*/
   auto restoredDy = GridOptimization<TrackProjection>(grid).findMaximums(
-#ifdef USE_CPU
-  [&](TrackProjection track) -> double
-    {
-      double responce = 0;
-      for (const Hit& hit : event.hits)
-      {
-        responce += exp(-getDistanceDy(track, hit) * sharpness);
-      }
-      return responce;
-    }
-#else
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
@@ -109,27 +66,9 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
         sharpness,
         values.data()
       );
-      valueCp = values;
       return values;
     }
-#endif
   );
-/*#ifndef USE_CPU
-  for (size_t i = 0; i < grid.size(); ++i)
-  {
-    if ((fabs([&](TrackProjection track) -> double
-    {
-      double responce = 0;
-      for (const Hit& hit : event.hits)
-      {
-        responce += exp(-getDistanceDy(track, hit) * sharpness);
-      }
-      return responce;
-    }(grid.getPoint(i)) - valueCp[i]) > 1e-6)) 
-      std::cerr << i << std::endl;
-  }
-#endif
-  */
   std::vector<TrackPure> tracks;
   std::vector<std::vector<std::pair<double, Hit> > > eventsDx = findBestHits<TrackProjection>(event, restoredDx, getDistanceDx);
   std::vector<std::vector<std::pair<double, Hit> > > eventsDy = findBestHits<TrackProjection>(event, restoredDy, getDistanceDy);
@@ -160,40 +99,21 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
   return tracks;
 }
 
-TrackPure trackPureGenerator(const std::vector<double>& vector) {
-  return TrackPure(vector[0], vector[1], vector[2], vector[3]);
-}
-
 std::vector<TrackPure> retinaFullTrackRestore(
   const EventInfo& event,
+  const IOptimization<TrackPure>* optimization,
   double sharpness
 )
 {
-  const std::vector<std::vector<double> > dim = {
-    generateUniformDimension(-1, 1, 30),
-    generateUniformDimension(-1, 1, 30),
-    generateUniformDimension(-0.3, 0.3, 30),
-    generateUniformDimension(-0.3, 0.3, 30)
-  };
-  const std::vector<Hit>& hits = event.hits;
-  Grid<TrackPure> grid(dim, trackPureGenerator);
-  auto tracks = GridOptimization<TrackPure>(grid).findMaximums(
-#define USE_CPU
-#ifdef USE_CPU
-    [&](TrackPure track) -> double
-    {
-      double responce = 0;
-      for (const Hit& hit : hits)
-      {
-        responce += exp(-getDistance(track, hit) / sharpness);
-      }
-      return responce;
-    }
-#else
+  auto tracks = optimization->findMaximums(
     [&](const std::vector<TrackPure>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
-      getRetina3dGpu(
+#ifdef USE_CPU
+        getRetina3dCpu(
+#else
+        getRetina3dGpu(
+#endif
         tracks.data(),
         tracks.size(),
         event.hits.data(),
@@ -201,21 +121,16 @@ std::vector<TrackPure> retinaFullTrackRestore(
         sharpness,
         values.data()
       );
-      std::cerr << values[0] << std::endl;
       return values;
     }
-#endif
   );
-  std::cerr <<
-    [&](TrackPure track) -> double
-    {
-      double responce = 0;
-      for (const Hit& hit : hits)
-      {
-        responce += exp(-getDistance(track, hit) * sharpness);
-      }
-      return responce;
-    }(grid.getPoint(0)) << std::endl;
-
   return tracks;
+}
+
+TrackProjection trackProjectionGenerator(const std::vector<double>& vector) {
+  return TrackProjection(vector[0], vector[1]);
+}
+
+TrackPure trackPureGenerator(const std::vector<double>& vector) {
+  return TrackPure(vector[0], vector[1], vector[2], vector[3]);
 }

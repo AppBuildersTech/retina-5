@@ -1,9 +1,11 @@
 #include <iostream>
 #include <functional>
+#include <memory>
 
 #include "ExecuteRetina.h"
 #include "algorithms/Retina.h"
 #include "Tools.h"
+#include "optimizations/GridOptimization.h"
 
 
 /**
@@ -15,8 +17,17 @@ int cpuRetinaInvocation(
    const std::vector<const std::vector<uint8_t>* >  & input,
   std::vector<std::vector<uint8_t> > & output
 ) {
-  //auto findTracks = std::bind(retinaFullTrackRestore, std::placeholders::_1, 1e3);
-  auto findTracks = std::bind(retinaProjectionTrackRestore, std::placeholders::_1, 1e3);
+  const std::vector<std::vector<double> > dim = {
+    generateUniformDimension(-1, 1, 30),
+    generateUniformDimension(-1, 1, 30),
+    generateUniformDimension(-0.3, 0.3, 30),
+    generateUniformDimension(-0.3, 0.3, 30)
+  };
+  Grid<TrackPure> grid(dim, trackPureGenerator);
+  std::unique_ptr<GridOptimization<TrackPure> > optimization(new GridOptimization<TrackPure>(grid));
+  IOptimization<TrackPure>* ptr = optimization.get();
+  auto findTracks = std::bind(retinaFullTrackRestore, std::placeholders::_1, ptr, 1e3);
+  //auto findTracks = std::bind(retinaProjectionTrackRestore, std::placeholders::_1, 1e3);
   auto findPoints = std::bind(findHits, std::placeholders::_1, std::placeholders::_2);
 
   output.resize(input.size());
@@ -27,7 +38,7 @@ int cpuRetinaInvocation(
       input[i]->size()
     );    
     
-    auto pureTracks = findTracks(event);
+    std::vector<TrackPure> pureTracks = findTracks(event);
     auto tracks = findPoints(pureTracks, event);
     output[i] = putTracksInOutputFormat(event.hits, tracks);
   }
