@@ -28,7 +28,7 @@ int cpuRetinaInvocation(
   */
   const std::vector<std::vector<double> > dim = {
     generateUniformDimension(-1, 1, 1000),
-    generateUniformDimension(-0.03, 0.03, 1000)
+    generateUniformDimension(-0.3, 0.3, 1000)
   };
   Grid<TrackProjection> grid(dim, trackProjectionGenerator);
   std::unique_ptr<GridOptimization<TrackProjection> > optimization(new GridOptimization<TrackProjection>(grid));

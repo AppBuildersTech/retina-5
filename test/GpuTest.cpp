@@ -1,5 +1,5 @@
-//#define BOOST_TEST_MODULE GpuTest
-//#include <boost/test/unit_test.hpp>
+#define BOOST_TEST_MODULE GpuTest
+#include <boost/test/unit_test.hpp>
 
 #include <chrono>
 #include "../src/RetinaCore/GpuRetina.cuh"
@@ -61,11 +61,11 @@ std::vector<TrackPure> generateRandomTrackPure(int N)
   return std::move(generated);
 }
 
-//BOOST_AUTO_TEST_CASE( retina_test_3d )
-void retina_test_3d()
+BOOST_AUTO_TEST_CASE( retina_test_3d )
+//void retina_test_3d()
 {
   const int H = 2560;
-  for (int N = 1 << 6; N <= (1 << 16); N <<= 1)
+  for (int N = 1 << 6; N <= (1 << 13); N <<= 1)
   {
     std::vector<Hit> hits = generateRandomHits(H);
     std::vector<TrackPure> tracks = generateRandomTrackPure(N);
@@ -106,16 +106,18 @@ void retina_test_3d()
     }
     for (int trackId = 0; trackId < tracks.size(); trackId++)
     {
+      if (fabs(valueCpu[trackId] - valueGpu[trackId]) > 1e-6)
+        std::cerr << trackId << std::endl;
       BOOST_CHECK_EQUALS(valueCpu[trackId], valueGpu[trackId], 1e-6);
     }
   }
 }
 
-//BOOST_AUTO_TEST_CASE( retina_test_2d )
-void retina_test_2d()
+BOOST_AUTO_TEST_CASE( retina_test_2d )
+//void retina_test_2d()
 {
   const int H = 2560;
-  for (int N = 1 << 6; N <= (1 << 16); N <<= 1)
+  for (int N = 1 << 6; N <= (1 << 13); N <<= 1)
   {
     std::vector<Hit> hits = generateRandomHits(H);
     std::vector<TrackProjection> tracks = generateRandomTrackProjections(N);
@@ -163,9 +165,9 @@ void retina_test_2d()
     }
   }
 }
-
+/*
 int main()
 {
   retina_test_2d();
   retina_test_3d();
-}
+}*/

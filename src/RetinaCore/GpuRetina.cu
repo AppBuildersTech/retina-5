@@ -60,19 +60,23 @@ void getRetina2dGpu(
   const int BLOCK_SIZE = 1 << 8;
   TrackProjection* tracksGpu = allocAndFetch(tracks, tracksNum);
   double* hitsXGpu = allocAndFetch(hitsX, hitsNum);
-  double* histZGpu = allocAndFetch(hitsZ, hitsNum);
+  double* hitsZGpu = allocAndFetch(hitsZ, hitsNum);
   double* valuesGpu = nullptr;
   cudaMalloc( (void**)&valuesGpu, sizeof(double) * tracksNum);
   calculateRetina2d<BLOCK_SIZE><<<tracksNum, BLOCK_SIZE>>>(
     tracksGpu, 
     tracksNum, 
     hitsXGpu, 
-    histZGpu, 
+    hitsZGpu, 
     hitsNum, 
     sharpness, 
     valuesGpu
   );
-  cudaMemcpy( values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
+  cudaMemcpy(values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
+  cudaFree(tracksGpu);
+  cudaFree(hitsXGpu);
+  cudaFree(hitsZGpu);
+  cudaFree(valuesGpu);
 }
 
 template<int BLOCK_SIZE>
@@ -128,7 +132,7 @@ void getRetina3dGpu(
   double sharpness,
   double *values
 ) {
-  const int BLOCK_SIZE = 1 << 7;
+  const int BLOCK_SIZE = 1 << 8;
   TrackPure* tracksGpu = allocAndFetch(tracks, tracksNum);
   Hit* hitsGpu = allocAndFetch(hitsX, hitsNum);
   double* valuesGpu = nullptr;
@@ -142,5 +146,8 @@ void getRetina3dGpu(
     valuesGpu
   );
   cudaMemcpy( values, valuesGpu, sizeof(double) * tracksNum, cudaMemcpyDeviceToHost );
+  cudaFree(tracksGpu);
+  cudaFree(hitsGpu);
+  cudaFree(valuesGpu);
 }
 
