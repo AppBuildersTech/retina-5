@@ -165,8 +165,8 @@ BOOST_AUTO_TEST_CASE( retina_test_2d )
     }
   }
 }
-/*
-int main()
+
+/*int main()
 {
   retina_test_2d();
   retina_test_3d();

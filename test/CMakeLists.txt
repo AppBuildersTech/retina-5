@@ -1,7 +1,10 @@
+cmake_minimum_required(VERSION 2.6)
+
 find_package (Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
-#include_directories (${TEST_SOURCE_DIR}/src
-#                     ${Boost_INCLUDE_DIRS}
-#                     )
+include_directories (${TEST_SOURCE_DIR}/src
+                     ${Boost_INCLUDE_DIRS}
+                     )
+add_definitions(-lboost_unit_test_framework)
 add_definitions(-std=c++11)
 add_definitions (-DBOOST_TEST_DYN_LINK)
 add_executable (GpuTest GpuTest.cpp)
