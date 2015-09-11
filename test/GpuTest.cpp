@@ -8,14 +8,6 @@
 
 #include <random>
 
-void BOOST_CHECK_EQUALS(double x, double y, double eps)
-{
-  if (fabs(x - y) > eps)
-  {
-    fprintf(stderr, "Expected %f geted %f\n", x , y);
-    exit(1);
-  }
-}
 std::vector<Hit> generateRandomHits(int N)
 {
   std::default_random_engine generator;
@@ -62,7 +54,6 @@ std::vector<TrackPure> generateRandomTrackPure(int N)
 }
 
 BOOST_AUTO_TEST_CASE( retina_test_3d )
-//void retina_test_3d()
 {
   const int H = 2560;
   for (int N = 1 << 6; N <= (1 << 13); N <<= 1)
@@ -106,15 +97,12 @@ BOOST_AUTO_TEST_CASE( retina_test_3d )
     }
     for (int trackId = 0; trackId < tracks.size(); trackId++)
     {
-      if (fabs(valueCpu[trackId] - valueGpu[trackId]) > 1e-6)
-        std::cerr << trackId << std::endl;
-      BOOST_CHECK_EQUALS(valueCpu[trackId], valueGpu[trackId], 1e-6);
+      BOOST_CHECK_CLOSE(valueCpu[trackId], valueGpu[trackId], 1e-6);
     }
   }
 }
 
 BOOST_AUTO_TEST_CASE( retina_test_2d )
-//void retina_test_2d()
 {
   const int H = 2560;
   for (int N = 1 << 6; N <= (1 << 13); N <<= 1)
@@ -161,13 +149,8 @@ BOOST_AUTO_TEST_CASE( retina_test_2d )
     }
     for (int trackId = 0; trackId < tracks.size(); trackId++)
     {
-      BOOST_CHECK_EQUALS(valueCpu[trackId], valueGpu[trackId], 1e-6);
+      BOOST_CHECK_CLOSE(valueCpu[trackId], valueGpu[trackId], 1e-6);
     }
   }
 }
 
-/*int main()
-{
-  retina_test_2d();
-  retina_test_3d();
-}*/
