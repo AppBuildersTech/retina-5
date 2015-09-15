@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
+#include <boost/math/distributions/normal.hpp>
 
 #include "Grid.h"
 
@@ -18,12 +19,12 @@ std::vector<double> generateUniformDimension(double min, double max, size_t size
 
 std::vector<double> generateGaussDimension(double mean, double sd, size_t size)
 {
-  std::default_random_engine generator;
-  std::normal_distribution<double> distribution(mean, sd);
   std::vector<double> dimension(size);
-  for (size_t i = 0; i < size; i++)
+  boost::math::normal dist(mean, sd);
+  double quant = 1. / size;
+  for (size_t i = 1; i < size; i++)
   {
-    dimension[i] = distribution(generator);
+    dimension[i] = quantile(dist, quant * i);
   }
   std::sort(dimension.begin(), dimension.end());
   return std::move(dimension);

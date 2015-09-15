@@ -50,11 +50,6 @@ void getRetina3dCpu(
       double dx = hits[hitId].x - tracks[trackId].x0 - hits[hitId].z * tracks[trackId].dx;
       double dy = hits[hitId].y - tracks[trackId].y0 - hits[hitId].z * tracks[trackId].dy;
       sum += exp (-(dx * dx + dy * dy) * sharpness);
-      //std::cerr << dx << " " << dy << std::endl;
-    }
-    if (sum < 1e-6)
-    {
-      //std::cerr << trackId << std::endl;
     }
     values[trackId] = sum;
   }

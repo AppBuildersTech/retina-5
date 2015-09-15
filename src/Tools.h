@@ -20,3 +20,8 @@ std::vector<uint8_t> putTracksInOutputFormat(
 
 double getQuatile(std::vector<double> data, double ratio);
 
+std::vector<std::pair<int, int> > setIntersection(
+  std::vector<std::vector<int> >& eventsDx,
+  std::vector<std::vector<int> >& eventsDy,
+  int threshold
+);

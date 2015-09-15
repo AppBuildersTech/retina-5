@@ -9,11 +9,17 @@
 
 #include "../optimizations/Grid.h"
 #include "../optimizations/GridOptimization.h"
+#include "../Tools.h"
 #include "../RetinaCore/Definitions.cuh"
-#include "../RetinaCore/GpuRetina.cuh"
 #include "Retina.h"
 #include "Physics.h"
 #include "HitsFinders.h"
+
+#ifdef USE_CPU
+#include "../RetinaCore/CpuRetina.h"
+#else
+#include "../RetinaCore/GpuRetina.cuh"
+#endif
 
 using namespace std::placeholders;
 
@@ -37,7 +43,11 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
-      getRetina2dGpu(
+#ifdef USE_CPU
+        getRetina2dCpu(
+#else
+        getRetina2dGpu(
+#endif
         tracks.data(),
         tracks.size(),
         hitsX.data(),
@@ -53,7 +63,11 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     [&](const std::vector<TrackProjection>& tracks) -> std::vector<double>
     {
       std::vector<double> values(tracks.size());
+#ifdef USE_CPU
+      getRetina2dCpu(
+#else
       getRetina2dGpu(
+#endif
         tracks.data(),
         tracks.size(),
         hitsY.data(),
@@ -66,31 +80,39 @@ std::vector<TrackPure> retinaProjectionTrackRestore(
     }
   );
   std::vector<TrackPure> tracks;
+  
   std::vector<std::vector<std::pair<double, Hit> > > eventsDx = findBestHits<TrackProjection>(event, restoredDx, getDistanceDx);
   std::vector<std::vector<std::pair<double, Hit> > > eventsDy = findBestHits<TrackProjection>(event, restoredDy, getDistanceDy);
-  for (size_t x = 0; x < eventsDx.size(); ++x)
+  std::vector<std::vector<int> > cleanedDx(eventsDx.size());
+  for (int i = 0; i < eventsDx.size(); ++i)
   {
-    std::vector<std::pair<double, Hit> >& xHits = eventsDx[x];
-    for (size_t y = 0; y < eventsDy.size(); ++y)
+    for (int j = 0; j < eventsDx[i].size(); ++j)
     {
-      std::vector<std::pair<double, Hit> >& yHits = eventsDy[y];
-      int intersection = 0;
-
-      for (int j = 0; j < xHits.size(); j++)
+      if (eventsDx[i][j].first < PARAM_TOLERANCE)
       {
-        if (xHits[j].first + yHits[j].first < PARAM_TOLERANCE && xHits[j].second.id == yHits[j].second.id)
-        {
-          intersection++;
-        }
+        cleanedDx[i].push_back(eventsDx[i][j].second.id);
       }
-      if (intersection > 2)
+    }   
+  }
+  std::vector<std::vector<int> > cleanedDy(eventsDy.size());
+  for (int i = 0; i < eventsDy.size(); ++i)
+  {
+    for (int j = 0; j < eventsDy[i].size(); ++j)
+    {
+      if (eventsDy[i][j].first < PARAM_TOLERANCE)
       {
-        TrackProjection& dx = restoredDx[x];
-        TrackProjection& dy = restoredDy[y];
+        cleanedDy[i].push_back(eventsDy[i][j].second.id);
+      }
+    }   
+  }
+  
+  for (const std::pair<int,int>& pair: setIntersection(cleanedDx, cleanedDy, 3))
+  {
+    
+    TrackProjection& dx = restoredDx[pair.first];
+    TrackProjection& dy = restoredDy[pair.second];
         
-        tracks.push_back(TrackPure(dx.x0, dx.dx, dy.x0, dy.dx));
-      }
-    }
+    tracks.push_back(TrackPure(dx.x0, dx.dx, dy.x0, dy.dx));
   }
   return tracks;
 }
