@@ -17,3 +17,7 @@ add_executable (ToolsTest ToolsTest.cpp ../src/Tools.cpp)
 target_link_libraries (ToolsTest
                        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                        )
+add_executable (GridTest GridTest.cpp ../src/optimizations/Grid.cpp)
+target_link_libraries (GridTest
+                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+                       )

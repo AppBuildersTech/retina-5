@@ -7,9 +7,6 @@ add_subdirectory (RetinaCore)
  
 list( APPEND CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
-add_definitions(-DUSE_CPU)
-list( APPEND CUDA_NVCC_FLAGS "-std=c++11 ${CUDA_NVCC_FLAGS}")
-
 FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20, code=sm_20)
 
@@ -32,4 +29,4 @@ set (SOURCES
         Tools.cpp
 )
 add_executable (retina ${HEADERS} ${SOURCES})
-#target_link_libraries (retina gpuacceleration)
+target_link_libraries (retina gpuacceleration)
