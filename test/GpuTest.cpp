@@ -97,8 +97,6 @@ BOOST_AUTO_TEST_CASE( retina_test_3d )
     }
     for (int trackId = 0; trackId < tracks.size(); trackId++)
     {
-      if (fabs(valueCpu[trackId] - valueGpu[trackId]) > 1e-6)
-        std::cerr << trackId << std::endl;
       BOOST_CHECK_CLOSE(valueCpu[trackId], valueGpu[trackId], 1e-6);
     }
   }
@@ -156,8 +154,3 @@ BOOST_AUTO_TEST_CASE( retina_test_2d )
   }
 }
 
-/*int main()
-{
-  retina_test_2d();
-  retina_test_3d();
-}*/

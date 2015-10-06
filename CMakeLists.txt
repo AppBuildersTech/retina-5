@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (retina)
-add_definitions(-DUSE_CPU)
+#add_definitions(-DUSE_CPU)
 
 add_subdirectory (src) 
 add_subdirectory (test)
