@@ -130,20 +130,25 @@ double getQuatile(std::vector<double> data, double ratio)
 }
 
 std::vector<std::pair<int, int> > setIntersection(
-  std::vector<std::vector<int> >& eventsDx,
-  std::vector<std::vector<int> >& eventsDy,
+  const std::vector<std::vector<int> >& eventsDx,
+  const std::vector<std::vector<int> >& eventsDy,
   int threshold
 )
 {
   int maxElement = 0;
   for (int i = 0; i < eventsDx.size(); i++)
   {
-    maxElement = std::max(maxElement, *std::max_element(eventsDx[i].begin(), eventsDx[i].end()));
+    if (!eventsDx[i].empty())
+    {
+      maxElement = std::max(maxElement, *std::max_element(eventsDx[i].begin(), eventsDx[i].end()));
+    }
   }
-
   for (int i = 0; i < eventsDy.size(); i++)
   {
-    maxElement = std::max(maxElement, *std::max_element(eventsDy[i].begin(), eventsDy[i].end()));
+    if(!eventsDy[i].empty()) 
+    {
+      maxElement = std::max(maxElement, *std::max_element(eventsDy[i].begin(), eventsDy[i].end()));
+    }
   }
   std::vector<std::vector<int> > reverseMap(maxElement + 1);
   for (int i = 0; i < eventsDx.size(); ++i)
