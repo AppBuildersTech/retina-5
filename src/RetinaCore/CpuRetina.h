@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   CpuRetina.h
  * Author: towelenee
  *
@@ -10,47 +10,59 @@
 #include "Definitions.cuh"
 #include <iostream>
 
+double distributionFunction(double x, double sharpness)
+{
+  return exp(- x * x * sharpness);
+}
+
+double distributionFunction(double x, double y, double sharpness)
+{
+  return exp(- (x * x + y * y) * sharpness);
+}
+
 void getRetina2dCpu(
-  const TrackProjection* tracks, 
-  int tracksNum, 
+  const TrackProjection* tracks,
+  int numberOfTracks,
   const double* hitsX,
   const double* hitsZ,
-  int hitsNum, 
+  int numberOfHits,
   double sharpness,
-  double *values
+  double *probabilites
 )
 {
-  for (int trackId = 0; trackId < tracksNum; trackId++)
+  for (int trackId = 0; trackId < numberOfTracks; trackId++)
   {
     double sum = 0;
-    for (int hitId = 0; hitId < hitsNum; hitId++)
+    for (int hitId = 0; hitId < numberOfHits; hitId++)
     {
-      double dx = hitsX[hitId] - tracks[trackId].x0 - hitsZ[hitId] * tracks[trackId].dx;
-      sum += exp (-(dx * dx) * sharpness);
+      sum += distributionFunction(
+                hitsX[hitId] - tracks[trackId].x0 - hitsZ[hitId] * tracks[trackId].dx,
+                sharpness);
     }
-    values[trackId] = sum;
+    probabilites[trackId] = sum;
   }
-  
+
 }
 
 void getRetina3dCpu(
-  const TrackPure* tracks, 
-  int tracksNum, 
+  const TrackPure* tracks,
+  int numberOfTracks,
   const Hit* hits,
-  int hitsNum, 
+  int numberOfHits,
   double sharpness,
-  double *values
+  double *probabilites
 )
 {
-  for (int trackId = 0; trackId < tracksNum; trackId++)
+  for (int trackId = 0; trackId < numberOfTracks; trackId++)
   {
     double sum = 0;
-    for (int hitId = 0; hitId < hitsNum; hitId++)
+    for (int hitId = 0; hitId < numberOfHits; hitId++)
     {
-      double dx = hits[hitId].x - tracks[trackId].x0 - hits[hitId].z * tracks[trackId].dx;
-      double dy = hits[hitId].y - tracks[trackId].y0 - hits[hitId].z * tracks[trackId].dy;
-      sum += exp (-(dx * dx + dy * dy) * sharpness);
+      sum += distributionFunction(
+                  hits[hitId].x - tracks[trackId].x0 - hits[hitId].z * tracks[trackId].dx,
+                  hits[hitId].y - tracks[trackId].y0 - hits[hitId].z * tracks[trackId].dy,
+                  sharpness);
     }
-    values[trackId] = sum;
+    probabilites[trackId] = sum;
   }
 }
